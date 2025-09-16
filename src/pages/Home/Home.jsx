@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import './App.css'
+import '../../styles/theme.css'
+import '../../styles/header.css'
+import '../../styles/sections.css'
 
-function App() {
+function Home() {
   const slides = [
     { img: '/orthoc/images/d1.jpg', title: 'We Provide Best Healthcare', desc: 'Asperiores sunt consectetur impedit nulla molestiae delectus repellat laborum dolores.' },
     { img: '/orthoc/images/d2.jpg', title: 'Trusted Medical Experts', desc: 'Curae vivamus quis magna vitae dui elementum cursus sit amet.' },
@@ -18,7 +20,6 @@ function App() {
 
   return (
     <div className="home">
-      {/* Orthoc header/hero area */}
       <section className="hero_area">
         <div className="hero_bg_box">
           <img src="/orthoc/images/hero-bg.png" alt="bg" />
@@ -69,7 +70,6 @@ function App() {
       </section>
       <div className="hero-wave-shape" />
 
-      {/* Departments */}
       <section className="department_section layout_padding" id="departments">
         <div className="container">
           <div className="heading_container heading_center">
@@ -98,7 +98,6 @@ function App() {
         </div>
       </section>
 
-      {/* About */}
       <section className="about_section layout_padding" id="about">
         <div className="container">
           <div className="row">
@@ -120,7 +119,6 @@ function App() {
         </div>
       </section>
 
-      {/* Doctors */}
       <section className="doctor_section layout_padding" id="doctors">
         <div className="container">
           <div className="heading_container heading_center">
@@ -153,7 +151,6 @@ function App() {
         </div>
       </section>
 
-      {/* Contact */}
       <section className="contact_section layout_padding" id="contact">
         <div className="container">
           <div className="heading_container">
@@ -178,7 +175,6 @@ function App() {
         </div>
       </section>
 
-      {/* Testimonial */}
       <section className="client_section layout_padding-bottom">
         <div className="container">
           <div className="heading_container heading_center">
@@ -242,4 +238,6 @@ function App() {
   )
 }
 
-export default App
+export default Home
+
+
