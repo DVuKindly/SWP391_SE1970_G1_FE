@@ -32,42 +32,42 @@ function AdminDashboard() {
 
   return (
     <div style={{ padding: 24 }}>
-      <h2>Admin Dashboard</h2>
+      <h2>Bảng điều khiển Admin</h2>
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-        <button onClick={() => setOpen(true)} style={styles.primaryBtn}>+ Create Staff</button>
+        <button onClick={() => setOpen(true)} style={styles.primaryBtn}>+ Tạo nhân viên</button>
         {message && <span style={{ color: '#0b5d50' }}>{message}</span>}
       </div>
 
       {/* API test image placeholder */}
       <div style={{ marginTop: 24 }}>
-        <h4>API Test (Swagger)</h4>
-        <p style={{ color: '#666', marginTop: 6 }}>Bạn có thể thay hình này bằng ảnh test API của bạn bằng cách sửa thuộc tính src.</p>
+        <h4>Kiểm thử API (Swagger)</h4>
+        <p style={{ color: '#666', marginTop: 6 }}>Bạn có thể thay hình này bằng ảnh kiểm thử API của bạn bằng cách sửa thuộc tính src.</p>
         <img src="/orthoc/images/about-img.jpg" alt="api test" style={{ maxWidth: '100%', borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,.08)' }} />
       </div>
 
       {open && (
         <div style={styles.backdrop} onClick={() => setOpen(false)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>Create Staff</h3>
+            <h3 style={{ marginTop: 0 }}>Tạo nhân viên</h3>
             <form onSubmit={handleSubmit}>
               <div style={styles.field}> 
                 <label style={styles.label}>Email</label>
                 <input style={styles.input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
               <div style={styles.field}> 
-                <label style={styles.label}>Password</label>
+                <label style={styles.label}>Mật khẩu</label>
                 <input style={styles.input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
               <div style={styles.field}> 
-                <label style={styles.label}>Role</label>
+                <label style={styles.label}>Vai trò</label>
                 <select style={styles.input} value={role} onChange={(e) => setRole(e.target.value)}>
                   <option value="Staff_Patient">Staff_Patient</option>
                   <option value="Staff_Doctor">Staff_Doctor</option>
                 </select>
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 14 }}>
-                <button type="button" onClick={() => setOpen(false)} style={styles.ghostBtn}>Cancel</button>
-                <button type="submit" disabled={loading} style={styles.primaryBtn}>{loading ? 'Saving...' : 'Create'}</button>
+                <button type="button" onClick={() => setOpen(false)} style={styles.ghostBtn}>Hủy</button>
+                <button type="submit" disabled={loading} style={styles.primaryBtn}>{loading ? 'Đang lưu...' : 'Tạo mới'}</button>
               </div>
             </form>
           </div>

@@ -1,13 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
+import { Link } from 'react-router-dom'
+import { AuthContext } from '../../providers/AuthContext'
+import Header from '../../components/Header'
 import '../../styles/theme.css'
 import '../../styles/header.css'
 import '../../styles/sections.css'
 
 function Home() {
+  const { isAuthenticated, user, logout } = useContext(AuthContext)
   const slides = [
-    { img: '/orthoc/images/d1.jpg', title: 'We Provide Best Healthcare', desc: 'Asperiores sunt consectetur impedit nulla molestiae delectus repellat laborum dolores.' },
-    { img: '/orthoc/images/d2.jpg', title: 'Trusted Medical Experts', desc: 'Curae vivamus quis magna vitae dui elementum cursus sit amet.' },
-    { img: '/orthoc/images/d3.jpg', title: 'Care When You Need It', desc: 'Natus molestias perferendis ratione doloribus quas cumque dignissimos.' }
+    { img: '/orthoc/images/d1.jpg', title: 'Dịch vụ chăm sóc sức khỏe tốt nhất', desc: 'Cung cấp dịch vụ tận tâm, an toàn và hiệu quả cho mọi bệnh nhân.' },
+    { img: '/orthoc/images/d2.jpg', title: 'Đội ngũ y bác sĩ uy tín', desc: 'Các chuyên gia hàng đầu luôn sẵn sàng đồng hành cùng bạn.' },
+    { img: '/orthoc/images/d3.jpg', title: 'Chăm sóc khi bạn cần', desc: 'Hỗ trợ nhanh chóng với quy trình đặt lịch và tư vấn thuận tiện.' }
   ]
   const [currentSlide, setCurrentSlide] = useState(0)
 
@@ -25,22 +29,7 @@ function Home() {
           <img src="/orthoc/images/hero-bg.png" alt="bg" />
         </div>
 
-        <header className="header_section">
-          <div className="topbar">
-            <div className="container">
-              <div className="nav container" style={{padding:0}}>
-                <div className="brand">eClinic</div>
-                <nav>
-                  <a href="#home">Home</a>
-                  <a href="#about">About</a>
-                  <a href="#departments">Departments</a>
-                  <a href="#doctors">Doctors</a>
-                  <a href="#contact">Contact Us</a>
-                </nav>
-              </div>
-            </div>
-          </div>
-        </header>
+        <Header />
 
         <section className="slider_section" id="home">
           <div className="container">
@@ -50,7 +39,8 @@ function Home() {
                   <h1>{slides[currentSlide].title}</h1>
                   <p>{slides[currentSlide].desc}</p>
                   <div className="btn-box">
-                    <a className="btn1" href="#departments">Read More</a>
+                    <a className="btn1" href="#departments">Xem thêm</a>
+                    {!isAuthenticated && <Link className="btn1" to="/login" style={{ marginLeft: 12 }}>Đăng nhập</Link>}
                   </div>
                 </div>
               </div>
@@ -73,8 +63,8 @@ function Home() {
       <section className="department_section layout_padding" id="departments">
         <div className="container">
           <div className="heading_container heading_center">
-            <h2>Our Departments</h2>
-            <p>Asperiores sunt consectetur impedit nulla molestiae delectus repellat.</p>
+            <h2>Chuyên khoa</h2>
+            <p>Các dịch vụ y tế đa dạng đáp ứng nhu cầu chăm sóc sức khỏe.</p>
           </div>
           <div className="row">
             {['s1','s2','s3','s4'].map((s, i) => (
@@ -84,16 +74,16 @@ function Home() {
                     <img src={`/orthoc/images/${s}.png`} alt="icon" />
                   </div>
                   <div className="detail-box">
-                    <h5>Service {i+1}</h5>
-                    <p>Fact that a reader will be distracted by the readable page.</p>
-                    <a href="#">Read More</a>
+                    <h5>Dịch vụ {i+1}</h5>
+                    <p>Nội dung mô tả ngắn gọn về dịch vụ và lợi ích mang lại.</p>
+                    <a href="#">Xem thêm</a>
                   </div>
                 </div>
               </div>
             ))}
           </div>
           <div className="btn-box">
-            <a href="#">View All</a>
+            <a href="#">Xem tất cả</a>
           </div>
         </div>
       </section>
@@ -109,10 +99,10 @@ function Home() {
             <div className="col-md-6">
               <div className="detail-box">
                 <div className="heading_container">
-                  <h3>About Us</h3>
+                  <h3>Về chúng tôi</h3>
                 </div>
-                <p>There are many variations of passages of Lorem Ipsum available.</p>
-                <a href="#">Read More</a>
+                <p>Chúng tôi hướng đến trải nghiệm khám chữa bệnh hiện đại, thuận tiện và an toàn.</p>
+                <a href="#">Xem thêm</a>
               </div>
             </div>
           </div>
@@ -122,7 +112,7 @@ function Home() {
       <section className="doctor_section layout_padding" id="doctors">
         <div className="container">
           <div className="heading_container heading_center">
-            <h2>Our Doctors</h2>
+            <h2>Bác sĩ của chúng tôi</h2>
           </div>
           <div className="row">
             {['d1','d2','d3'].map((d, i) => (
@@ -132,8 +122,8 @@ function Home() {
                     <img src={`/orthoc/images/${d}.jpg`} alt="doctor" />
                   </div>
                   <div className="detail-box">
-                    <h5>Doctor {i+1}</h5>
-                    <h6>Doctor</h6>
+                    <h5>Bác sĩ {i+1}</h5>
+                    <h6>Bác sĩ</h6>
                     <div className="social_box">
                       <a href="#"><i className="fa fa-facebook" /></a>
                       <a href="#"><i className="fa fa-twitter" /></a>
@@ -146,7 +136,7 @@ function Home() {
             ))}
           </div>
           <div className="btn-box">
-            <a href="#">View All</a>
+            <a href="#">Xem tất cả</a>
           </div>
         </div>
       </section>
@@ -154,16 +144,16 @@ function Home() {
       <section className="contact_section layout_padding" id="contact">
         <div className="container">
           <div className="heading_container">
-            <h2>Get In Touch</h2>
+            <h2>Liên hệ</h2>
           </div>
           <div className="row">
             <div className="col-md-6">
               <form className="form_container" onSubmit={(e)=>e.preventDefault()}>
-                <input placeholder="Your Name" />
-                <input placeholder="Phone Number" />
+                <input placeholder="Họ và tên" />
+                <input placeholder="Số điện thoại" />
                 <input placeholder="Email" />
-                <input className="message-box" placeholder="Message" />
-                <button type="submit">Send</button>
+                <input className="message-box" placeholder="Lời nhắn" />
+                <button type="submit">Gửi</button>
               </form>
             </div>
             <div className="col-md-6">
@@ -178,13 +168,13 @@ function Home() {
       <section className="client_section layout_padding-bottom">
         <div className="container">
           <div className="heading_container heading_center">
-            <h2>Testimonial</h2>
+            <h2>Cảm nhận khách hàng</h2>
           </div>
           <div className="box">
             <div className="img-box"><img src="/orthoc/images/client.jpg" alt="client" /></div>
             <div className="detail-box">
               <div className="name"><h6>Alan Emerson</h6></div>
-              <p>Enim consequatur odio assumenda voluptas voluptatibus esse nobis officia.</p>
+              <p>Dịch vụ tận tâm, quy trình nhanh gọn và đội ngũ chuyên nghiệp.</p>
             </div>
           </div>
         </div>
@@ -195,10 +185,10 @@ function Home() {
           <div className="row">
             <div className="col-md-3 footer_col">
               <div className="footer_contact">
-                <h4>Reach at..</h4>
+                <h4>Liên hệ</h4>
                 <div className="contact_link_box">
-                  <a href="#"><i className="fa fa-map-marker" aria-hidden="true" /> Location</a>
-                  <a href="#"><i className="fa fa-phone" aria-hidden="true" /> Call +01 1234567890</a>
+                  <a href="#"><i className="fa fa-map-marker" aria-hidden="true" /> Địa chỉ</a>
+                  <a href="#"><i className="fa fa-phone" aria-hidden="true" /> Gọi +01 1234567890</a>
                   <a href="#"><i className="fa fa-envelope" aria-hidden="true" /> demo@gmail.com</a>
                 </div>
               </div>
@@ -210,24 +200,24 @@ function Home() {
               </div>
             </div>
             <div className="col-md-3 footer_col">
-              <h4>About</h4>
-              <p>Beatae provident nobis molestiae magnam voluptatum, unde dicta facitis minima veniam.</p>
+              <h4>Giới thiệu</h4>
+              <p>Hệ thống eClinic hỗ trợ đặt lịch, tư vấn và theo dõi sức khỏe hiệu quả.</p>
             </div>
             <div className="col-md-3 footer_col">
-              <h4>Links</h4>
+              <h4>Liên kết</h4>
               <div className="footer_links">
-                <a href="#">Home</a>
-                <a href="#">About</a>
-                <a href="#">Departments</a>
-                <a href="#">Doctors</a>
-                <a href="#">Contact Us</a>
+                <a href="#">Trang chủ</a>
+                <a href="#">Giới thiệu</a>
+                <a href="#">Chuyên khoa</a>
+                <a href="#">Bác sĩ</a>
+                <a href="#">Liên hệ</a>
               </div>
             </div>
             <div className="col-md-3 footer_col">
-              <h4>Newsletter</h4>
+              <h4>Bản tin</h4>
               <form>
-                <input type="text" placeholder="Enter email" />
-                <button>Subscribe</button>
+                <input type="text" placeholder="Nhập email" />
+                <button>Đăng ký</button>
               </form>
             </div>
           </div>
