@@ -15,9 +15,9 @@ const Login = () => {
   const validate = () => {
     const errors = {};
     if (!email.trim()) {
-      errors.email = 'Vui lòng nhập email';
+      errors.email = 'Vui lòng nhập email ...';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Email không hợp lệ';
+      errors.email = 'Email không hợp lệ ...';
     }
 
     if (!password) {
