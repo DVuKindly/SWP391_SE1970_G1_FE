@@ -2,11 +2,16 @@ import { useEffect, useState, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import { AuthContext } from '../../providers/AuthContext'
 import Header from '../../components/Header'
+import { useNavigate } from 'react-router-dom'
 import '../../styles/theme.css'
 import '../../styles/header.css'
 import '../../styles/sections.css'
+import FloatingRegister from '../../components/FloatingRegister'
+import LoginChoiceModal from '../../components/LoginChoiceModal'
+import '../../styles/floating-register.css'
 
 function Home() {
+  const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useContext(AuthContext)
   const slides = [
     { img: '/orthoc/images/d1.jpg', title: 'Dịch vụ chăm sóc sức khỏe tốt nhất', desc: 'Cung cấp dịch vụ tận tâm, an toàn và hiệu quả cho mọi bệnh nhân.' },
@@ -22,6 +27,21 @@ function Home() {
     return () => clearInterval(id)
   }, [slides.length])
 
+  const [showLoginChoice, setShowLoginChoice] = useState(false)
+
+  const openLoginChoice = () => setShowLoginChoice(true)
+  const closeLoginChoice = () => setShowLoginChoice(false)
+
+  const goPatientLogin = () => {
+    setShowLoginChoice(false)
+    navigate('/login?role=patient')
+  }
+
+  const goStaffLogin = () => {
+    setShowLoginChoice(false)
+    navigate('/login-system')
+  }
+
   return (
     <div className="home">
       <section className="hero_area">
@@ -29,7 +49,7 @@ function Home() {
           <img src="/orthoc/images/hero-bg.png" alt="bg" />
         </div>
 
-        <Header />
+        <Header onLoginClick={openLoginChoice} />
 
         <section className="slider_section" id="home">
           <div className="container">
@@ -40,7 +60,9 @@ function Home() {
                   <p>{slides[currentSlide].desc}</p>
                   <div className="btn-box">
                     <a className="btn1" href="#departments">Xem thêm</a>
-                    {!isAuthenticated && <Link className="btn1" to="/login" style={{ marginLeft: 12 }}>Đăng nhập</Link>}
+                    {!isAuthenticated && (
+                      <button className="btn1" onClick={openLoginChoice} style={{ marginLeft: 12 }}>Đăng nhập</button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -58,6 +80,8 @@ function Home() {
           </div>
         </section>
       </section>
+      <FloatingRegister />
+      <LoginChoiceModal open={showLoginChoice} onClose={closeLoginChoice} onPatient={goPatientLogin} onStaff={goStaffLogin} />
       <div className="hero-wave-shape" />
 
       <section className="department_section layout_padding" id="departments">

@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
+import LoginChoiceModal from '../../components/LoginChoiceModal'
 import '../../styles/theme.css'
 
 const CreateAccount = () => {
   const navigate = useNavigate()
+  const [showLoginChoice, setShowLoginChoice] = useState(false)
+  const openLoginChoice = () => setShowLoginChoice(true)
+  const closeLoginChoice = () => setShowLoginChoice(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
@@ -41,32 +45,35 @@ const CreateAccount = () => {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/Auth/register', {
+      const res = await fetch('/api/patient/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name, phone })
+        body: JSON.stringify({ email, password, fullName: name, phone })
       })
+      let envelope
       if (!res.ok) {
         let message = ''
         try {
           const j = await res.clone().json()
-          console.error('Register error response:', j)
-          // Handle different error response formats
           message = j?.message || j?.error || j?.title || j?.detail || ''
-          // If it's a validation error with multiple fields
           if (j?.errors && typeof j.errors === 'object') {
             const fieldErrors = Object.entries(j.errors)
-              .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+              .map(([field, errs]) => `${field}: ${Array.isArray(errs) ? errs.join(', ') : errs}`)
               .join('; ')
             message = fieldErrors || message
           }
         } catch (_) {
           message = await res.text().catch(() => '')
-          console.error('Register error text:', message)
         }
         throw new Error(message || `Tạo tài khoản thất bại (${res.status})`)
+      } else {
+        envelope = await res.json()
       }
-      // Success -> go to login
+
+      if (!envelope?.success) {
+        throw new Error(envelope?.message || 'Tạo tài khoản thất bại')
+      }
+
       navigate('/login')
     } catch (err) {
       setFormErrors({ api: err?.message || 'Có lỗi xảy ra' })
@@ -77,7 +84,7 @@ const CreateAccount = () => {
 
   return (
     <div>
-      <Header />
+      <Header onLoginClick={openLoginChoice} />
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 420, padding: 24, border: '1px solid #e5e7eb', borderRadius: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, marginBottom: 16 }}>
@@ -123,6 +130,12 @@ const CreateAccount = () => {
           </button>
         </form>
       </div>
+      <LoginChoiceModal
+        open={showLoginChoice}
+        onClose={closeLoginChoice}
+        onPatient={() => { setShowLoginChoice(false); navigate('/login?role=patient') }}
+        onStaff={() => { setShowLoginChoice(false); navigate('/login-system') }}
+      />
     </div>
   )
 }

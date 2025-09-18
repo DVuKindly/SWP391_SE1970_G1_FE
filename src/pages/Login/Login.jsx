@@ -6,7 +6,7 @@ import '../../styles/theme.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { loginPatient } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
@@ -34,7 +34,7 @@ const Login = () => {
 
     setIsSubmitting(true);
     try {
-      await login({ email, password });
+      await loginPatient({ email, password });
       navigate('/');
     } catch (error) {
       setFormErrors({ api: error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.' });

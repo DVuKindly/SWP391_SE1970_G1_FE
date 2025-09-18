@@ -5,6 +5,8 @@ export const AuthContext = createContext({
   user: null,
   tokens: null,
   login: async () => {},
+  loginPatient: async () => {},
+  loginEmployee: async () => {},
   logout: () => {},
   updateProfileLocally: () => {},
 })
@@ -32,17 +34,16 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   }
 
-  const login = useCallback(async ({ email, password }) => {
+  const doLogin = useCallback(async (url, { email, password }) => {
     const payload = { email, password }
 
-    // Use Vite proxy to avoid CORS/SSL issues in dev
-    const res = await fetch('/api/Auth/login', {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
 
-    let data
+    let envelope
     if (!res.ok) {
       let serverMessage = ''
       try {
@@ -54,25 +55,49 @@ export const AuthProvider = ({ children }) => {
       if (res.status === 401) {
         throw new Error('Sai email hoặc mật khẩu')
       }
-      console.error('Login failed:', res.status, res.statusText, serverMessage)
       throw new Error(serverMessage || res.statusText || `Máy chủ lỗi (${res.status}).`)
     } else {
-      data = await res.json()
+      envelope = await res.json()
     }
+
+    // Expect ServiceResult<AuthResponse>
+    if (!envelope?.success) {
+      throw new Error(envelope?.message || 'Đăng nhập thất bại')
+    }
+    const data = envelope.data || {}
+
     const nextTokens = {
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
-      expiresAt: data.expiresAt,
+      // optional expiresAt not provided by BE now
     }
     const nextUser = {
-      email,
-      role: data.role,
-      accountId: data.accountId,
+      userId: data.userId,
+      email: data.email,
+      fullName: data.fullName,
+      roles: Array.isArray(data.roles) ? data.roles : [],
+      primaryRole: Array.isArray(data.roles) && data.roles.length > 0 ? data.roles[0] : undefined,
     }
+
     setTokens(nextTokens)
     setUser(nextUser)
     persist({ tokens: nextTokens, user: nextUser })
+
+    return { user: nextUser, tokens: nextTokens }
   }, [])
+
+  const loginPatient = useCallback(async ({ email, password }) => {
+    return doLogin('/api/patient/auth/login', { email, password })
+  }, [doLogin])
+
+  const loginEmployee = useCallback(async ({ email, password }) => {
+    return doLogin('/api/employee/auth/login', { email, password })
+  }, [doLogin])
+
+  // Backward-compatible default login → treat as patient login by default
+  const login = useCallback(async ({ email, password }) => {
+    return loginPatient({ email, password })
+  }, [loginPatient])
 
   const logout = useCallback(() => {
     setTokens(null)
@@ -93,9 +118,11 @@ export const AuthProvider = ({ children }) => {
     tokens,
     user,
     login,
+    loginPatient,
+    loginEmployee,
     logout,
     updateProfileLocally,
-  }), [tokens, user, login, logout, updateProfileLocally])
+  }), [tokens, user, login, loginPatient, loginEmployee, logout, updateProfileLocally])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

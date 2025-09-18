@@ -1,9 +1,25 @@
-import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../providers/AuthContext';
 
-const Header = () => {
+const Header = ({ onLoginClick }) => {
   const { isAuthenticated, user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  const isPatient = !!(user?.roles || []).includes('Patient')
+  const displayName = user?.fullName || user?.email || 'User'
+  const initial = (displayName || 'U').trim().charAt(0).toUpperCase()
+
+  useEffect(() => {
+    const onClick = (e) => {
+      if (!menuRef.current) return
+      if (!menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    if (menuOpen) document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [menuOpen])
 
   return (
     <header className="header_section">
@@ -74,20 +90,56 @@ const Header = () => {
             <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
               {isAuthenticated ? (
                 <>
-                  <button 
-                    onClick={logout} 
-                    style={{ 
-                      padding: '8px 16px',
-                      background: 'var(--primary)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: 'white',
-                      fontWeight: '500',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ĐĂNG XUẤT ({user?.email})
-                  </button>
+                  {isPatient ? (
+                    <div ref={menuRef} style={{ position: 'relative' }}>
+                      <button
+                        onClick={() => setMenuOpen((v) => !v)}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: 999,
+                          padding: '4px 8px 4px 4px',
+                          display: 'flex', alignItems: 'center', gap: 8,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          background: '#e2e8f0', color: '#0b5d50',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 700
+                        }}>{initial}</div>
+                        <span style={{ color: '#374151', fontWeight: 500, fontSize: 14 }}>{displayName}</span>
+                        <span style={{ color: '#6b7280' }}>▾</span>
+                      </button>
+                      {menuOpen && (
+                        <div style={{
+                          position: 'absolute', right: 0, marginTop: 8, minWidth: 180,
+                          background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+                          boxShadow: '0 10px 20px rgba(0,0,0,.08)', overflow: 'hidden', zIndex: 30
+                        }}>
+                          <button onClick={() => { setMenuOpen(false); navigate('/profile'); }} style={menuItemStyle}>Hồ sơ</button>
+                          <button onClick={() => { setMenuOpen(false); navigate('/appointments'); }} style={menuItemStyle}>Bệnh án</button>
+                          <button onClick={() => { setMenuOpen(false); logout(); }} style={menuItemStyle}>Đăng xuất</button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={logout} 
+                      style={{ 
+                        padding: '8px 16px',
+                        background: 'var(--primary)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: 'white',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ĐĂNG XUẤT ({user?.email})
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
@@ -106,22 +158,40 @@ const Header = () => {
                   >
                     TẠO TÀI KHOẢN
                   </Link>
-                  <Link 
-                    to="/login" 
-                    style={{ 
-                      padding: '8px 16px',
-                      background: 'var(--primary)',
-                      border: 'none',
-                      borderRadius: '6px',
-                      color: 'white',
-                      fontWeight: '500',
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                      display: 'inline-block'
-                    }}
-                  >
-                    ĐĂNG NHẬP
-                  </Link>
+                  {onLoginClick ? (
+                    <button
+                      onClick={onLoginClick}
+                      style={{ 
+                        padding: '8px 16px',
+                        background: 'var(--primary)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: 'white',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        display: 'inline-block'
+                      }}
+                    >
+                      ĐĂNG NHẬP
+                    </button>
+                  ) : (
+                    <Link 
+                      to="/login" 
+                      style={{ 
+                        padding: '8px 16px',
+                        background: 'var(--primary)',
+                        border: 'none',
+                        borderRadius: '6px',
+                        color: 'white',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                        display: 'inline-block'
+                      }}
+                    >
+                      ĐĂNG NHẬP
+                    </Link>
+                  )}
                 </>
               )}
             </div>
@@ -131,5 +201,7 @@ const Header = () => {
     </header>
   );
 };
+
+const menuItemStyle = { width: '100%', textAlign: 'left', padding: '10px 12px', background: '#fff', border: 'none', cursor: 'pointer', fontSize: 14 };
 
 export default Header;
