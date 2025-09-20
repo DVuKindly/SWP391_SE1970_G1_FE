@@ -5,6 +5,7 @@ function CreateStaff() {
   const { tokens } = useContext(AuthContext)
   const [form, setForm] = useState({ email: '', password: '', fullName: '', phone: '', roleName: '' })
   const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState('') // 'success' or 'error'
   const [loading, setLoading] = useState(false)
   const [staffs, setStaffs] = useState([])
   const [open, setOpen] = useState(false)
@@ -35,8 +36,10 @@ function CreateStaff() {
   const submit = async (e) => {
     e.preventDefault()
     setMessage('')
+    setMessageType('')
     if (!form.email || !form.password || !form.fullName || !form.phone || !form.roleName) {
       setMessage('Vui lòng nhập đầy đủ thông tin')
+      setMessageType('error')
       return
     }
     setLoading(true)
@@ -66,12 +69,19 @@ function CreateStaff() {
         envelope = await res.json()
       }
       if (!envelope?.success) throw new Error(envelope?.message || 'Tạo staff thất bại')
-      setMessage('Tạo nhân viên thành công')
+      setMessage('Tạo nhân viên thành công!')
+      setMessageType('success')
       setForm({ email: '', password: '', fullName: '', phone: '', roleName: '' })
-      setOpen(false)
       fetchStaffs()
+      // Auto close modal after 2 seconds on success
+      setTimeout(() => {
+        setOpen(false)
+        setMessage('')
+        setMessageType('')
+      }, 2000)
     } catch (err) {
       setMessage(err?.message || 'Có lỗi xảy ra')
+      setMessageType('error')
     } finally {
       setLoading(false)
     }
@@ -81,17 +91,35 @@ function CreateStaff() {
     <section className="ad-panel">
       <div className="ad-panel-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0 }}>Manage Staff</h3>
-        <button className="ad-logout" onClick={() => { setMessage(''); setForm({ email: '', password: '', fullName: '', phone: '', roleName: '' }); setOpen(true) }}>Create Staff</button>
+        <button className="ad-logout" onClick={() => { setMessage(''); setMessageType(''); setForm({ email: '', password: '', fullName: '', phone: '', roleName: '' }); setOpen(true) }}>Create Staff</button>
       </div>
 
       {open && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }} onClick={() => setOpen(false)}>
-          <div style={{ width: 'min(92vw, 900px)', background: '#fff', borderRadius: 12, padding: 16 }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60 }}>
+          <div style={{ width: 'min(92vw, 900px)', background: '#fff', borderRadius: 12, padding: 16 }}>
             <div className="ad-panel-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h4 style={{ margin: 0 }}>Create Staff</h4>
-              <button onClick={() => setOpen(false)} style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b7280' }}>×</button>
+              <button onClick={() => { setOpen(false); setMessage(''); setMessageType(''); }} style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b7280' }}>×</button>
             </div>
-            {message && <div style={{ marginTop: 8, marginBottom: 8, color: '#0b5d50' }}>{message}</div>}
+            {message && (
+              <div style={{ 
+                marginTop: 8, 
+                marginBottom: 8, 
+                color: messageType === 'success' ? '#16a34a' : '#ef4444',
+                backgroundColor: messageType === 'success' ? '#f0fdf4' : '#fef2f2',
+                border: `1px solid ${messageType === 'success' ? '#bbf7d0' : '#fecaca'}`,
+                borderRadius: 8,
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8
+              }}>
+                <span style={{ fontSize: '16px' }}>
+                  {messageType === 'success' ? '✅' : '❌'}
+                </span>
+                {message}
+              </div>
+            )}
             <form onSubmit={submit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div>
                 <label style={{ display: 'block', marginBottom: 6 }}>Email</label>

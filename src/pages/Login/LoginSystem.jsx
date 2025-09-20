@@ -50,10 +50,23 @@ const LoginSystem = () => {
         setFormErrors({ api: 'Tài khoản không thuộc vai trò đã chọn.' })
         return
       }
-      if (role === 'Admin') {
-        navigate('/admin')
-      } else {
-        navigate('/')
+      // Redirect to appropriate dashboard based on role
+      switch (role) {
+        case 'Admin':
+          navigate('/admin')
+          break
+        case 'Doctor':
+          navigate('/doctor')
+          break
+        case 'Staff_Doctor':
+          navigate('/staff-doctor')
+          break
+        case 'Staff_Patient':
+          navigate('/staff-patient')
+          break
+        default:
+          navigate('/')
+          break
       }
     } catch (error) {
       setFormErrors({ api: error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.' })
