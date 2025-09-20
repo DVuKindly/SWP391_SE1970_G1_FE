@@ -52,7 +52,7 @@ function AdminDashboard() {
         </nav>
       </aside>
 
-      {/* Main */}
+      {/* nhánh main */}
       <main className="ad-main">
         <div className="ad-topbar">
           <div></div>
@@ -115,7 +115,7 @@ function AdminDashboard() {
             </section>
           </>
         )}
-
+  
         {active === 'create-staff' && (
           <ManageStaff />
         )}
