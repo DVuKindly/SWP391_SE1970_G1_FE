@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../providers/AuthContext';
 import Header from '../../components/Header';
+import LoginChoiceModal from '../../components/LoginChoiceModal'
 import '../../styles/theme.css';
 
 const Login = () => {
@@ -11,6 +12,9 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLoginChoice, setShowLoginChoice] = useState(false)
+  const openLoginChoice = () => setShowLoginChoice(true)
+  const closeLoginChoice = () => setShowLoginChoice(false)
 
   const validate = () => {
     const errors = {};
@@ -45,7 +49,7 @@ const Login = () => {
 
   return (
     <div>
-      <Header />
+      <Header onLoginClick={openLoginChoice} />
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
         <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 380, padding: 24, border: '1px solid #e5e7eb', borderRadius: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, marginBottom: 16 }}>
@@ -138,6 +142,12 @@ const Login = () => {
 
         </form>
       </div>
+      <LoginChoiceModal
+        open={showLoginChoice}
+        onClose={closeLoginChoice}
+        onPatient={() => { setShowLoginChoice(false); /* đang ở trang patient login */ }}
+        onStaff={() => { setShowLoginChoice(false); navigate('/login-system') }}
+      />
     </div>
   );
 };

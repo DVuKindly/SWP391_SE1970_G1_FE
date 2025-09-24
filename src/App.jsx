@@ -9,6 +9,7 @@ import DoctorDashboard from './pages/Doctor/DoctorDashboard'
 import StaffDoctorDashboard from './pages/StaffDoctor/StaffDoctorDashboard'
 import StaffPatientDashboard from './pages/Staff/StaffPatientDashboard'
 import { AuthProvider } from './providers/AuthContext'
+import ScrollToTopButton from './components/ScrollToTopButton'
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/staff-doctor" element={<StaffDoctorDashboard />} />
           <Route path="/staff-patient" element={<StaffPatientDashboard />} />
         </Routes>
+        <ScrollToTopButton />
       </AuthProvider>
     </BrowserRouter>
   )
