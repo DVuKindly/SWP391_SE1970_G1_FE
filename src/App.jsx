@@ -20,8 +20,8 @@ function App() {
           <Route path="/login-system" element={<LoginSystem />} />
           <Route path="/create-account" element={<CreateAccount />} />
           {/* để tạm như này ạ ai làm Profile thì sửa lại nha */}
-          <Route path="/profile" element={<div style={{padding:24}}>Trang hồ sơ (đang cập nhật)</div>} />
-          <Route path="/appointments" element={<div style={{padding:24}}>Bệnh án của tôi (đang cập nhật)</div>} />
+          <Route path="/profile" element={<div style={{ padding: 24 }}>Trang hồ sơ (đang cập nhật)</div>} />
+          <Route path="/appointments" element={<div style={{ padding: 24 }}>Bệnh án của tôi (đang cập nhật)</div>} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/doctor" element={<DoctorDashboard />} />
           <Route path="/staff-doctor" element={<StaffDoctorDashboard />} />

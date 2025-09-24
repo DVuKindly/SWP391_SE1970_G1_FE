@@ -91,14 +91,14 @@ function Home() {
             <p>Các dịch vụ y tế đa dạng đáp ứng nhu cầu chăm sóc sức khỏe.</p>
           </div>
           <div className="row">
-            {['s1','s2','s3','s4'].map((s, i) => (
+            {['s1', 's2', 's3', 's4'].map((s, i) => (
               <div className="col-md-3 col-sm-6" key={i}>
                 <div className="box">
                   <div className="img-box">
                     <img src={`/orthoc/images/${s}.png`} alt="icon" />
                   </div>
                   <div className="detail-box">
-                    <h5>Dịch vụ {i+1}</h5>
+                    <h5>Dịch vụ {i + 1}</h5>
                     <p>Nội dung mô tả ngắn gọn về dịch vụ và lợi ích mang lại.</p>
                     <a href="#">Xem thêm</a>
                   </div>
@@ -139,14 +139,14 @@ function Home() {
             <h2>Bác sĩ của chúng tôi</h2>
           </div>
           <div className="row">
-            {['d1','d2','d3'].map((d, i) => (
+            {['d1', 'd2', 'd3'].map((d, i) => (
               <div className="col-md-4" key={i}>
                 <div className="box">
                   <div className="img-box">
                     <img src={`/orthoc/images/${d}.jpg`} alt="doctor" />
                   </div>
                   <div className="detail-box">
-                    <h5>Bác sĩ {i+1}</h5>
+                    <h5>Bác sĩ {i + 1}</h5>
                     <h6>Bác sĩ</h6>
                     <div className="social_box">
                       <a href="#"><i className="fa fa-facebook" /></a>
@@ -172,7 +172,7 @@ function Home() {
           </div>
           <div className="row">
             <div className="col-md-6">
-              <form className="form_container" onSubmit={(e)=>e.preventDefault()}>
+              <form className="form_container" onSubmit={(e) => e.preventDefault()}>
                 <input placeholder="Họ và tên" />
                 <input placeholder="Số điện thoại" />
                 <input placeholder="Email" />

@@ -4,11 +4,11 @@ export const AuthContext = createContext({
   isAuthenticated: false,
   user: null,
   tokens: null,
-  login: async () => {},
-  loginPatient: async () => {},
-  loginEmployee: async () => {},
-  logout: () => {},
-  updateProfileLocally: () => {},
+  login: async () => { },
+  loginPatient: async () => { },
+  loginEmployee: async () => { },
+  logout: () => { },
+  updateProfileLocally: () => { },
 })
 
 const STORAGE_KEY = 'eclinic.auth'

@@ -1,0 +1,117 @@
+/* Account Manager scoped styles */
+.am-subtitle {
+  color: #64748b;
+  margin-top: -4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.am-filters {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.am-filters-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr 180px;
+  gap: 10px;
+}
+
+.am-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+.am-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+}
+.am-actions {
+  display: flex;
+  gap: 8px;
+}
+.am-btn-muted {
+  background: #6b7280 !important;
+}
+
+.am-search {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.am-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+}
+.am-modal {
+  width: min(92vw, 900px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+}
+.am-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: #6b7280;
+}
+.am-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.am-table-wrap {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+.am-thead {
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+.am-row-selected {
+  background: #eef2ff;
+}
+.am-row-alt {
+  background: #f9fafb;
+}
+.am-role-badge {
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid #e0e7ff;
+}
+
+.am-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+.am-total {
+  color: #64748b;
+}
+.am-pager {
+  display: flex;
+  gap: 8px;
+}
