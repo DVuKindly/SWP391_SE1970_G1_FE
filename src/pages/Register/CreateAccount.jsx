@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../../components/Header'
 import LoginChoiceModal from '../../components/LoginChoiceModal'
 import '../../styles/theme.css'
+import './CreateAccount.css'
 
 const CreateAccount = () => {
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ const CreateAccount = () => {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [formErrors, setFormErrors] = useState({})
+  const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validate = () => {
@@ -23,8 +25,8 @@ const CreateAccount = () => {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.email = 'Email không hợp lệ'
     }
-    if (!password || password.length < 6) {
-      errors.password = 'Mật khẩu tối thiểu 6 ký tự'
+    if (!password || password.length < 8) {
+      errors.password = 'Mật khẩu tối thiểu 8 ký tự'
     }
     if (!name.trim()) {
       errors.name = 'Vui lòng nhập họ tên'
@@ -73,8 +75,8 @@ const CreateAccount = () => {
       if (!envelope?.success) {
         throw new Error(envelope?.message || 'Tạo tài khoản thất bại')
       }
-
-      navigate('/login')
+      setSuccessMessage(envelope?.message || 'Đăng ký thành công. Vui lòng đăng nhập.')
+      setTimeout(() => navigate('/login'), 1200)
     } catch (err) {
       setFormErrors({ api: err?.message || 'Có lỗi xảy ra' })
     } finally {
@@ -85,47 +87,48 @@ const CreateAccount = () => {
   return (
     <div>
       <Header onLoginClick={openLoginChoice} />
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 420, padding: 24, border: '1px solid #e5e7eb', borderRadius: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, marginBottom: 16 }}>
+      <div className="register-container">
+        <form onSubmit={handleSubmit} className="register-form">
+          <div className="form-header">
             <h2 style={{ margin: 0 }}>Tạo tài khoản</h2>
             <button
               type="button"
               onClick={() => navigate('/')}
               title="Về trang chủ"
-              style={{ background: 'transparent', border: 'none', color: 'var(--primary)', fontSize: 13, cursor: 'pointer', padding: 0 }}
+              className="back-home-btn"
             >
               ← Về trang chủ
             </button>
           </div>
 
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-group">
             <label htmlFor="email" style={{ display: 'block', marginBottom: 6 }}>Email</label>
-            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" required style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }} />
-            {formErrors.email && (<div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>{formErrors.email}</div>)}
+            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" required className="text-input" />
+            {formErrors.email && (<div className="error-text">{formErrors.email}</div>)}
           </div>
 
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-group">
             <label htmlFor="password" style={{ display: 'block', marginBottom: 6 }}>Mật khẩu</label>
-            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nhập mật khẩu" required style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }} />
-            {formErrors.password && (<div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>{formErrors.password}</div>)}
+            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nhập mật khẩu" required className="text-input" />
+            {formErrors.password && (<div className="error-text">{formErrors.password}</div>)}
           </div>
 
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-group">
             <label htmlFor="name" style={{ display: 'block', marginBottom: 6 }}>Họ tên</label>
-            <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nguyễn Văn A" required style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }} />
-            {formErrors.name && (<div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>{formErrors.name}</div>)}
+            <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nguyễn Văn A" required className="text-input" />
+            {formErrors.name && (<div className="error-text">{formErrors.name}</div>)}
           </div>
 
-          <div style={{ marginBottom: 12 }}>
+          <div className="form-group">
             <label htmlFor="phone" style={{ display: 'block', marginBottom: 6 }}>Số điện thoại</label>
-            <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0912345678" required style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }} />
-            {formErrors.phone && (<div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>{formErrors.phone}</div>)}
+            <input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0912345678" required className="text-input" />
+            {formErrors.phone && (<div className="error-text">{formErrors.phone}</div>)}
           </div>
 
-          {formErrors.api && (<div style={{ color: '#b91c1c', margin: '8px 0 0', fontSize: 13 }}>{formErrors.api}</div>)}
+          {formErrors.api && (<div className="error-text" style={{ marginTop: 8 }}>{formErrors.api}</div>)}
+          {successMessage && (<div className="success-text">{successMessage}</div>)}
 
-          <button type="submit" disabled={isSubmitting} style={{ width: '100%', padding: '10px 12px', background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, var(--primary), #0b5d50)', color: '#fff', border: 'none', borderRadius: 6, cursor: isSubmitting ? 'not-allowed' : 'pointer' }}>
+          <button type="submit" disabled={isSubmitting} className="submit-btn">
             {isSubmitting ? 'Đang tạo...' : 'Tạo tài khoản'}
           </button>
         </form>

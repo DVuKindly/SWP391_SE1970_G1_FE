@@ -1,0 +1,46 @@
+.footer_section {
+  background: #0c0c0c;
+  color: #fff;
+  padding-top: 40px;
+}
+.footer_section .footer_col h4 {
+  margin-bottom: 12px;
+}
+.footer_contact .contact_link_box a {
+  display: block;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.footer_social a {
+  display: inline-block;
+  margin-right: 8px;
+  color: #fff;
+}
+.footer_links a {
+  display: block;
+  color: #fff;
+  margin-bottom: 6px;
+}
+.footer_section input[type="text"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  margin-bottom: 8px;
+}
+.footer_section button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--primary), #0b5d50);
+  color: #fff;
+  cursor: pointer;
+}
+.footer-info {
+  text-align: center;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin-top: 20px;
+}
+
+

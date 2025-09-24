@@ -27,11 +27,17 @@ const stringifyRoles = (value) => {
   return names.join(', ')
 }
 
-function AccountsTable({ items, loading, selected, toggleSelect, updateStatus, selectAllOnPage }) {
+function AccountsTable({ items, loading, selected, toggleSelect, updateStatus, selectAllOnPage, updateStatusBulk }) {
   const handleSelectPage = useCallback(() => selectAllOnPage(items), [selectAllOnPage, items])
 
   return (
     <div className="am-table-wrap">
+      {selected.size > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '10px 12px', borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
+          <button className="ad-logout" onClick={() => updateStatusBulk(true)}>Activate ({selected.size})</button>
+          <button className="ad-logout" style={{ background: '#ef4444' }} onClick={() => updateStatusBulk(false)}>Deactivate ({selected.size})</button>
+        </div>
+      )}
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr className="am-thead">

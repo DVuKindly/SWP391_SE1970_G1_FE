@@ -7,8 +7,10 @@ import '../../styles/theme.css'
 import '../../styles/header.css'
 import '../../styles/sections.css'
 import FloatingRegister from '../../components/FloatingRegister'
+import Footer from '../../components/Footer'
 import LoginChoiceModal from '../../components/LoginChoiceModal'
 import '../../styles/floating-register.css'
+import './Hone.css'
 
 function Home() {
   const navigate = useNavigate()
@@ -61,7 +63,7 @@ function Home() {
                   <div className="btn-box">
                     <a className="btn1" href="#departments">Xem thêm</a>
                     {!isAuthenticated && (
-                      <button className="btn1" onClick={openLoginChoice} style={{ marginLeft: 12 }}>Đăng nhập</button>
+                      <button className="btn1 btn-login-inline" onClick={openLoginChoice}>Đăng nhập</button>
                     )}
                   </div>
                 </div>
@@ -204,50 +206,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="footer_section">
-        <div className="container">
-          <div className="row">
-            <div className="col-md-3 footer_col">
-              <div className="footer_contact">
-                <h4>Liên hệ</h4>
-                <div className="contact_link_box">
-                  <a href="#"><i className="fa fa-map-marker" aria-hidden="true" /> Địa chỉ</a>
-                  <a href="#"><i className="fa fa-phone" aria-hidden="true" /> Gọi +01 1234567890</a>
-                  <a href="#"><i className="fa fa-envelope" aria-hidden="true" /> demo@gmail.com</a>
-                </div>
-              </div>
-              <div className="footer_social">
-                <a href="#"><i className="fa fa-facebook" aria-hidden="true" /></a>
-                <a href="#"><i className="fa fa-twitter" aria-hidden="true" /></a>
-                <a href="#"><i className="fa fa-linkedin" aria-hidden="true" /></a>
-                <a href="#"><i className="fa fa-instagram" aria-hidden="true" /></a>
-              </div>
-            </div>
-            <div className="col-md-3 footer_col">
-              <h4>Giới thiệu</h4>
-              <p>Hệ thống eClinic hỗ trợ đặt lịch, tư vấn và theo dõi sức khỏe hiệu quả.</p>
-            </div>
-            <div className="col-md-3 footer_col">
-              <h4>Liên kết</h4>
-              <div className="footer_links">
-                <a href="#">Trang chủ</a>
-                <a href="#">Giới thiệu</a>
-                <a href="#">Chuyên khoa</a>
-                <a href="#">Bác sĩ</a>
-                <a href="#">Liên hệ</a>
-              </div>
-            </div>
-            <div className="col-md-3 footer_col">
-              <h4>Bản tin</h4>
-              <form>
-                <input type="text" placeholder="Nhập email" />
-                <button>Đăng ký</button>
-              </form>
-            </div>
-          </div>
-        </div>
-        <div className="footer-info"><p>© 2025 All Rights Reserved</p></div>
-      </section>
+      <Footer />
     </div>
   )
 }

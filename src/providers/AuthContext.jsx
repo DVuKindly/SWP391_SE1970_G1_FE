@@ -94,7 +94,6 @@ export const AuthProvider = ({ children }) => {
     return doLogin('/api/employee/auth/login', { email, password })
   }, [doLogin])
 
-  // Backward-compatible default login → treat as patient login by default
   const login = useCallback(async ({ email, password }) => {
     return loginPatient({ email, password })
   }, [loginPatient])

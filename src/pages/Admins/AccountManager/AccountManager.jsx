@@ -9,14 +9,7 @@ import Pagination from './Pagination'
 import './AccountManager.css'
 import CreateStaffModal from '../CreateStaffModal'
 
-// Admin Accounts Manager
-// Features:
-// - List accounts with filters (role, keyword)
-// - Pagination (page, pageSize)
-// - Fetch available roles
-// - Search by email
-// - Toggle single account status (activate/deactivate)
-// - Bulk activate/deactivate selected accounts
+
 
 const initialQuery = { role: '', keyword: '', page: 1, pageSize: 10 }
 
@@ -26,7 +19,7 @@ function AccountManager() {
     roles, query, setQuery, data, setData, loading,
     message, messageType, selected,
     toggleSelect, selectAllOnPage, clearSelection,
-    fetchAccounts, searchByEmail, updateStatus,
+    fetchAccounts, searchByEmail, updateStatus, updateStatusBulk,
     showMessage, sortDir, toggleSort,
   } = useAccountsManager(tokens)
   const [emailLookup, setEmailLookup] = useState('')
@@ -129,6 +122,7 @@ function AccountManager() {
         toggleSelect={toggleSelect}
         updateStatus={updateStatus}
         selectAllOnPage={selectAllOnPage}
+        updateStatusBulk={updateStatusBulk}
       />
 
       {/* Pagination */}
