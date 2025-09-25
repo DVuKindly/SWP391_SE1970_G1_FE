@@ -21,6 +21,26 @@ export default function useAccountsManager(tokens) {
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState("");
   const [selected, setSelected] = useState(new Set());
+  const [hasNextPage, setHasNextPage] = useState(false);
+
+  const buildNameSortKey = useCallback((a) => {
+    const nameRaw = (
+      a.fullName || a.FullName || a.name || a.Name ||
+      [a.firstName || a.FirstName || '', a.lastName || a.LastName || ''].filter(Boolean).join(' ')
+    ) || '';
+    const normalizedFull = nameRaw
+      .toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') 
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+    // Sort by given name (tên) only: take the last word
+    const parts = normalizedFull.split(' ').filter(Boolean);
+    const givenName = parts.length > 0 ? parts[parts.length - 1] : normalizedFull;
+    return `${givenName}|${normalizedFull}`;
+  }, []);
 
   const showMessage = useCallback((text, type = "info") => {
     setMessage(text);
@@ -65,10 +85,14 @@ export default function useAccountsManager(tokens) {
       );
       const normalized = items.map((a) => ({
         ...a,
-        _sortKey: (a.fullName || a.FullName || a.name || a.Name || a.email || a.Email || '').toString().toLowerCase(),
+        _sortKey: buildNameSortKey(a),
       }));
-      normalized.sort((x, y) => sortDir === 'asc' ? x._sortKey.localeCompare(y._sortKey) : y._sortKey.localeCompare(x._sortKey));
+      normalized.sort((x, y) => sortDir === 'asc'
+        ? x._sortKey.localeCompare(y._sortKey, 'vi', { sensitivity: 'base' })
+        : y._sortKey.localeCompare(x._sortKey, 'vi', { sensitivity: 'base' })
+      );
       setData({ items: normalized, total });
+      setHasNextPage(normalized.length >= (query.pageSize || 10));
     } catch (err) {
       showMessage(err?.message || "Có lỗi xảy ra khi tải dữ liệu", "error");
     } finally {
@@ -155,16 +179,21 @@ export default function useAccountsManager(tokens) {
             fullName: a.fullName || a.FullName || a.name || a.Name,
             roles:
               a.roles || a.Roles || a.Role || (a.Role ? [a.Role] : undefined),
-            _sortKey: (a.fullName || a.FullName || a.name || a.Name || a.email || a.Email || '').toString().toLowerCase(),
+            _sortKey: buildNameSortKey(a),
           })
         );
-        normalized.sort((x, y) => sortDir === 'asc' ? x._sortKey.localeCompare(y._sortKey) : y._sortKey.localeCompare(x._sortKey));
+        normalized.sort((x, y) => sortDir === 'asc'
+          ? x._sortKey.localeCompare(y._sortKey, 'vi', { sensitivity: 'base' })
+          : y._sortKey.localeCompare(x._sortKey, 'vi', { sensitivity: 'base' })
+        );
         setData({ items: normalized, total: normalized.length });
         setQuery((p) => ({ ...p, page: 1 }));
         clearSelection();
+        setHasNextPage(false);
       } catch (err) {
         showMessage(err?.message || "Có lỗi xảy ra khi tìm kiếm", "error");
         setData({ items: [], total: 0 });
+        setHasNextPage(false);
       }
     },
     [tokens, showMessage, clearSelection, sortDir]
@@ -194,5 +223,6 @@ export default function useAccountsManager(tokens) {
     showMessage,
     sortDir,
     toggleSort,
+    hasNextPage,
   };
 }

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useContext, useMemo, useState } from 'react'
 import { AuthContext } from '../../../providers/AuthContext'
 import { createStaff } from '../../../services/accounts.api'
 import useAccountsManager from '../../../hooks/useAccountsManager'
@@ -11,7 +11,7 @@ import CreateStaffModal from '../CreateStaffModal'
 
 
 
-const initialQuery = { role: '', keyword: '', page: 1, pageSize: 10 }
+// const initialQuery = { role: '', keyword: '', page: 1, pageSize: 10 }
 
 function AccountManager() {
   const { tokens } = useContext(AuthContext)
@@ -21,6 +21,7 @@ function AccountManager() {
     toggleSelect, selectAllOnPage, clearSelection,
     fetchAccounts, searchByEmail, updateStatus, updateStatusBulk,
     showMessage, sortDir, toggleSort,
+    hasNextPage,
   } = useAccountsManager(tokens)
   const [emailLookup, setEmailLookup] = useState('')
   const [emailResult, setEmailResult] = useState(null)
@@ -63,6 +64,11 @@ function AccountManager() {
   const doSearchByEmail = async () => { await searchByEmail(emailLookup) }
 
   const totalPages = Math.max(1, Math.ceil((data.total || 0) / (query.pageSize || 10)))
+  const effectiveTotalPages = Math.max(
+    1,
+    totalPages,
+    hasNextPage ? (query.page + 1) : query.page
+  )
 
   return (
     <section className="ad-panel">
@@ -129,9 +135,10 @@ function AccountManager() {
       <Pagination
         total={data.total}
         page={query.page}
-        totalPages={Math.max(1, Math.ceil((data.total || 0) / (query.pageSize || 10)))}
+        totalPages={effectiveTotalPages}
         setPage={(next) => setQuery((p) => ({ ...p, page: next }))}
         onClearSelection={clearSelection}
+        hasNextPage={hasNextPage}
       />
     </section>
   )

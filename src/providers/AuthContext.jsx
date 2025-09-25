@@ -69,7 +69,6 @@ export const AuthProvider = ({ children }) => {
     const nextTokens = {
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
-      // optional expiresAt not provided by BE now
     }
     const nextUser = {
       userId: data.userId,
