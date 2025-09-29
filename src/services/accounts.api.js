@@ -71,3 +71,20 @@ export async function createStaff(payload, tokens) {
   });
   return data;
 }
+
+export async function createAccountWithRoles(payload, tokens) {
+  // apiClient already normalizes { success, data }
+  const data = await apiClient.post('/api/employee/auth/create-account-manyRole', {
+    tokens,
+    body: payload,
+  });
+  return data;
+}
+
+export async function updateAccountProfile(id, payload, tokens) {
+  await apiClient.put(`/api/admin/accounts/${id}/profile`, {
+    tokens,
+    body: payload,
+  });
+  return true;
+}

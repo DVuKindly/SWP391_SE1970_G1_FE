@@ -77,7 +77,6 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Placeholder for future widgets */}
           </>
         )}
   

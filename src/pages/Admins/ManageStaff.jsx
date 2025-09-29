@@ -9,9 +9,9 @@ function CreateStaff() {
   const [loading, setLoading] = useState(false)
   const [staffs, setStaffs] = useState([])
   const [open, setOpen] = useState(false)
-
+// Hàm cập nhật trường form
   const updateField = (field) => (e) => setForm((p) => ({ ...p, [field]: e.target.value }))
-
+// Hàm lấy danh sách staff
   const fetchStaffs = async () => {
     try {
       const res = await fetch('/api/admin/staffs', {
@@ -24,15 +24,13 @@ function CreateStaff() {
       const list = Array.isArray(data) ? data : (Array.isArray(data?.data) ? data.data : [])
       setStaffs(list)
     } catch (_) {
-      // ignore
     }
   }
-
+// Tải danh sách staff khi component được mount
   useEffect(() => {
     fetchStaffs()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
+// Hàm xử lý submit form
   const submit = async (e) => {
     e.preventDefault()
     setMessage('')
@@ -73,12 +71,11 @@ function CreateStaff() {
       setMessageType('success')
       setForm({ email: '', password: '', fullName: '', phone: '', roleName: '' })
       fetchStaffs()
-      // Auto close modal after 2 seconds on success
       setTimeout(() => {
         setOpen(false)
         setMessage('')
         setMessageType('')
-      }, 2000)
+      }, 5000)
     } catch (err) {
       setMessage(err?.message || 'Có lỗi xảy ra')
       setMessageType('error')

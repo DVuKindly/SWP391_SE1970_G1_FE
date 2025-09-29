@@ -1,4 +1,4 @@
-function Pagination({ total, page, totalPages, setPage, onClearSelection, hasNextPage }) {
+function Pagination({ total, page, totalPages, setPage, hasNextPage }) {
   return (
     <div className="am-pagination">
       <div className="am-total">Tổng: {total}</div>
@@ -11,7 +11,6 @@ function Pagination({ total, page, totalPages, setPage, onClearSelection, hasNex
           disabled={!(page < totalPages || hasNextPage)}
         >Sau</button>
       </div>
-      <button className="ad-logout am-btn-muted" onClick={onClearSelection}>Bỏ chọn</button>
     </div>
   )
 }

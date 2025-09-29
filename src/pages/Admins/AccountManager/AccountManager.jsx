@@ -1,17 +1,13 @@
 import { useContext, useMemo, useState } from 'react'
 import { AuthContext } from '../../../providers/AuthContext'
-import { createStaff } from '../../../services/accounts.api'
+import { createStaff, createAccountWithRoles } from '../../../services/accounts.api'
 import useAccountsManager from '../../../hooks/useAccountsManager'
 import Filters from './Filters'
 import SearchBar from './SearchBar'
 import AccountsTable from './AccountsTable'
 import Pagination from './Pagination'
 import './AccountManager.css'
-import CreateStaffModal from '../CreateStaffModal'
-
-
-
-// const initialQuery = { role: '', keyword: '', page: 1, pageSize: 10 }
+import CreateStaffModal from './CreateStaffModal'
 
 function AccountManager() {
   const { tokens } = useContext(AuthContext)
@@ -21,48 +17,65 @@ function AccountManager() {
     toggleSelect, selectAllOnPage, clearSelection,
     fetchAccounts, searchByEmail, updateStatus, updateStatusBulk,
     showMessage, sortDir, toggleSort,
-    hasNextPage,
+    hasNextPage, updateAccount,
   } = useAccountsManager(tokens)
   const [emailLookup, setEmailLookup] = useState('')
-  const [emailResult, setEmailResult] = useState(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [createForm, setCreateForm] = useState({ email: '', password: '', fullName: '', phone: '', roleName: '' })
+  
+  // Edit modal state
+  const [editOpen, setEditOpen] = useState(false)
+  const [editLoading, setEditLoading] = useState(false)
+  const [selectedAccount, setSelectedAccount] = useState(null)
 
-  const authHeaders = useMemo(() => ({
-    'Content-Type': 'application/json',
-    ...(tokens?.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
-  }), [tokens])
-
-  const stringifyRoles = (value) => {
-    if (!value) return ''
-    if (typeof value === 'string') return value
-    if (typeof value?.Role === 'string') return value.Role
-    if (typeof value?.role === 'string') return value.role
-    const arr = Array.isArray(value)
-      ? value
-      : (Array.isArray(value?.roles)
-        ? value.roles
-        : (Array.isArray(value?.Roles) ? value.Roles : []))
-    const names = arr.map((r) => {
-      if (typeof r === 'string') return r
-      return r?.roleName || r?.name || r?.displayName || r?.RoleName || r?.Code || ''
-    }).filter(Boolean)
-    return names.join(', ')
-  }
-
-  const getFullName = (a) => {
-    if (!a) return ''
-    const name = a.fullName || a.FullName || a.fullname || a.name || a.Name
-    if (name) return name
-    const first = a.firstName || a.FirstName || a.givenName || ''
-    const last = a.lastName || a.LastName || a.surname || ''
-    const combined = [first, last].filter(Boolean).join(' ')
-    return combined || '-'
-  }
-
+// Hàm tìm kiếm theo email
   const doSearchByEmail = async () => { await searchByEmail(emailLookup) }
 
+// Hàm xử lý chỉnh sửa tài khoản
+  const handleEditAccount = (account) => {
+    setSelectedAccount(account)
+    setEditOpen(true)
+  }
+
+// Hàm xử lý cập nhật tài khoản
+  const handleUpdateAccount = async (formData) => {
+    setEditLoading(true)
+    try {
+      const accountId = selectedAccount?.id ?? selectedAccount?.accountId
+      await updateAccount(accountId, formData)
+      setEditOpen(false)
+      setSelectedAccount(null)
+    } catch (err) {
+      // Error đã được xử lý trong updateAccount
+    } finally {
+      setEditLoading(false)
+    }
+  }
+
+// Hàm xử lý submit cho cả create và edit
+  const handleSubmit = async (formData, reset) => {
+    if (editOpen && selectedAccount) {
+      // Edit mode
+      await handleUpdateAccount(formData)
+    } else {
+      // Create mode
+      setCreateLoading(true)
+      try {
+        await createAccountWithRoles(formData, tokens)
+        showMessage('Tạo nhân viên thành công!', 'success')
+        reset?.()
+        setCreateOpen(false)
+        fetchAccounts()
+      } catch (err) {
+        showMessage(err?.message, 'error')
+        setCreateOpen(false)
+      } finally {
+        setCreateLoading(false)
+      }
+    }
+  }
+// Tính toán tổng số trang
   const totalPages = Math.max(1, Math.ceil((data.total || 0) / (query.pageSize || 10)))
   const effectiveTotalPages = Math.max(
     1,
@@ -86,8 +99,22 @@ function AccountManager() {
           backgroundColor: messageType === 'success' ? '#f0fdf4' : (messageType === 'error' ? '#fef2f2' : '#f1f5f9'),
           border: `1px solid ${messageType === 'success' ? '#bbf7d0' : (messageType === 'error' ? '#fecaca' : '#e2e8f0')}`,
           borderRadius: 8,
-          padding: '10px 12px',
-        }}>{message}</div>
+          padding: '12px 16px',
+          fontSize: '14px',
+          fontWeight: '500',
+          boxShadow: messageType === 'error' ? '0 2px 4px rgba(239, 68, 68, 0.1)' : '0 2px 4px rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          {messageType === 'error' && (
+            <span style={{ fontSize: '16px' }}>⚠️</span>
+          )}
+          {messageType === 'success' && (
+            <span style={{ fontSize: '16px' }}>✅</span>
+          )}
+          {message}
+        </div>
       )}
 
       {/* Filters */}
@@ -102,23 +129,27 @@ function AccountManager() {
           open={createOpen}
           onClose={() => setCreateOpen(false)}
           loading={createLoading}
-          onSubmit={async (form, reset) => {
-            setCreateLoading(true)
-            try {
-              await createStaff(form, tokens)
-              showMessage('Tạo nhân viên thành công!', 'success')
-              reset?.()
-              setTimeout(() => setCreateOpen(false), 1200)
-              fetchAccounts()
-            } catch (err) {
-              showMessage(err?.message || 'Có lỗi xảy ra', 'error')
-            } finally {
-              setCreateLoading(false)
-            }
-          }}
+          tokens={tokens}
+          editMode={false}
+          onSubmit={handleSubmit}
         />
       )}
-      {/* Email quick-result section removed; results now injected into the table above */}
+
+      {/* Edit Staff Modal */}
+      {editOpen && (
+        <CreateStaffModal
+          open={editOpen}
+          onClose={() => {
+            setEditOpen(false)
+            setSelectedAccount(null)
+          }}
+          loading={editLoading}
+          tokens={tokens}
+          editMode={true}
+          accountData={selectedAccount}
+          onSubmit={handleSubmit}
+        />
+      )}
 
       {/* Table */}
       <AccountsTable
@@ -129,6 +160,8 @@ function AccountManager() {
         updateStatus={updateStatus}
         selectAllOnPage={selectAllOnPage}
         updateStatusBulk={updateStatusBulk}
+        clearSelection={clearSelection}
+        onEdit={handleEditAccount}
       />
 
       {/* Pagination */}
@@ -137,9 +170,9 @@ function AccountManager() {
         page={query.page}
         totalPages={effectiveTotalPages}
         setPage={(next) => setQuery((p) => ({ ...p, page: next }))}
-        onClearSelection={clearSelection}
         hasNextPage={hasNextPage}
       />
+
     </section>
   )
 }

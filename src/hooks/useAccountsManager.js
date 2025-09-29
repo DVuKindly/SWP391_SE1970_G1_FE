@@ -5,6 +5,7 @@ import {
   getAccountByEmail,
   putAccountStatus,
   bulkAccountStatus,
+  updateAccountProfile,
 } from "../services/accounts.api";
 
 export default function useAccountsManager(tokens) {
@@ -22,7 +23,7 @@ export default function useAccountsManager(tokens) {
   const [messageType, setMessageType] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [hasNextPage, setHasNextPage] = useState(false);
-
+//Hàm xây dựng khóa sắp xếp tên
   const buildNameSortKey = useCallback((a) => {
     const nameRaw = (
       a.fullName || a.FullName || a.name || a.Name ||
@@ -51,7 +52,7 @@ export default function useAccountsManager(tokens) {
         setMessageType("");
       }, 1800);
   }, []);
-
+//Hàm lấy danh sách vai trò
   const fetchRoles = useCallback(async () => {
     try {
       const raw = await getRoles(tokens);
@@ -70,7 +71,7 @@ export default function useAccountsManager(tokens) {
       setRoles(list);
     } catch (_) {}
   }, [tokens]);
-
+//Hàm lấy danh sách tài khoản
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
@@ -134,7 +135,7 @@ export default function useAccountsManager(tokens) {
       return next;
     });
   }, []);
-
+//Hàm xóa lựa chọn
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
   const updateStatus = useCallback(
@@ -149,7 +150,7 @@ export default function useAccountsManager(tokens) {
     },
     [tokens, showMessage, fetchAccounts]
   );
-
+//Hàm cập nhật trạng thái hàng loạt
   const updateStatusBulk = useCallback(
     async (isActive) => {
       if (selected.size === 0) {
@@ -167,7 +168,7 @@ export default function useAccountsManager(tokens) {
     },
     [selected, tokens, showMessage, clearSelection, fetchAccounts]
   );
-
+//Hàm tìm kiếm theo email
   const searchByEmail = useCallback(
     async (email) => {
       if (!email?.trim()) return;
@@ -198,10 +199,31 @@ export default function useAccountsManager(tokens) {
     },
     [tokens, showMessage, clearSelection, sortDir]
   );
-
+//Hàm chuyển đổi sắp xếp
   const toggleSort = useCallback(() => {
     setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
   }, []);
+
+  //Hàm cập nhật thông tin tài khoản
+  const updateAccount = useCallback(
+    async (id, profileData) => {
+      try {
+        // Chỉ gửi các trường có thể chỉnh sửa (không bao gồm email và password)
+        const updateData = {
+          fullName: profileData.fullName,
+          phone: profileData.phone
+        };
+        
+        await updateAccountProfile(id, updateData, tokens);
+        showMessage("Cập nhật thông tin tài khoản thành công", "success");
+        fetchAccounts();
+      } catch (err) {
+        showMessage(err?.message || "Có lỗi xảy ra khi cập nhật", "error");
+        throw err; // Re-throw để component có thể xử lý
+      }
+    },
+    [tokens, showMessage, fetchAccounts]
+  );
 
   return {
     roles,
@@ -224,5 +246,6 @@ export default function useAccountsManager(tokens) {
     sortDir,
     toggleSort,
     hasNextPage,
+    updateAccount,
   };
 }

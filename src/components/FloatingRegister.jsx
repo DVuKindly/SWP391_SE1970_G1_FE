@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
-const defaultForm = { fullName: '', email: '', phone: '', content: '' }
+const defaultForm = { fullName: '', email: '', phone: '', content: '', appointmentDate: '' }
 
 const FloatingRegister = () => {
   const [open, setOpen] = useState(false)
@@ -8,6 +8,11 @@ const FloatingRegister = () => {
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState({ type: '', message: '' })
+
+  // Tính toán ngày mai và ngày tối thiểu cho input date
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const minDate = tomorrow.toISOString().split('T')[0] // Format: YYYY-MM-DD
 
   const onChange = (field) => (e) => {
     const value = e.target.value
@@ -22,6 +27,7 @@ const FloatingRegister = () => {
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Email không hợp lệ'
       if (!form.phone.trim()) next.phone = 'Vui lòng nhập số điện thoại'
       if (!form.content.trim()) next.content = 'Vui lòng nhập nội dung'
+      if (!form.appointmentDate.trim()) next.appointmentDate = 'Vui lòng chọn ngày khám'
       return next
     }
   }, [form])
@@ -33,6 +39,13 @@ const FloatingRegister = () => {
     if (open) document.addEventListener('keydown', onEsc)
     return () => document.removeEventListener('keydown', onEsc)
   }, [open])
+
+  // Set default appointment date to tomorrow when modal opens
+  useEffect(() => {
+    if (open && !form.appointmentDate) {
+      setForm(prev => ({ ...prev, appointmentDate: minDate }))
+    }
+  }, [open, minDate, form.appointmentDate])
 
   const submit = async (e) => {
     e?.preventDefault?.()
@@ -51,6 +64,7 @@ const FloatingRegister = () => {
           email: form.email,
           phone: form.phone,
           content: form.content,
+          appointmentDate: form.appointmentDate,
         }),
       })
 
@@ -133,6 +147,27 @@ const FloatingRegister = () => {
                 <label>Nội dung*</label>
                 <textarea rows={3} value={form.content} onChange={onChange('content')} placeholder="Nội dung tư vấn" />
                 {errors.content && <div className="fr-error">{errors.content}</div>}
+              </div>
+              <div className="fr-field">
+                <label>Ngày khám*</label>
+                <input 
+                  type="date" 
+                  value={form.appointmentDate} 
+                  onChange={onChange('appointmentDate')} 
+                  min={minDate}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #ddd',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    backgroundColor: '#fff'
+                  }}
+                />
+                {errors.appointmentDate && <div className="fr-error">{errors.appointmentDate}</div>}
+                <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  Chỉ có thể chọn từ ngày mai trở đi
+                </div>
               </div>
               <button className="fr-submit" type="submit" disabled={submitting}>
                 {submitting ? 'Đang gửi...' : 'Gửi thông tin'}

@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-
+// Hàm lấy tên đầy đủ
 const getFullName = (a) => {
   if (!a) return ''
   const name = a.fullName || a.FullName || a.fullname || a.name || a.Name
@@ -9,7 +9,7 @@ const getFullName = (a) => {
   const combined = [first, last].filter(Boolean).join(' ')
   return combined || '-'
 }
-
+// Hàm chuyển đổi vai trò thành chuỗi
 const stringifyRoles = (value) => {
   if (!value) return ''
   if (typeof value === 'string') return value
@@ -26,8 +26,8 @@ const stringifyRoles = (value) => {
   }).filter(Boolean)
   return names.join(', ')
 }
-
-function AccountsTable({ items, loading, selected, toggleSelect, updateStatus, selectAllOnPage, updateStatusBulk }) {
+// Bảng danh sách tài khoản
+function AccountsTable({ items, loading, selected, toggleSelect, updateStatus, selectAllOnPage, updateStatusBulk, clearSelection, onEdit }) {
   const handleSelectPage = useCallback(() => selectAllOnPage(items), [selectAllOnPage, items])
 
   return (
@@ -42,7 +42,10 @@ function AccountsTable({ items, loading, selected, toggleSelect, updateStatus, s
         <thead>
           <tr className="am-thead">
             <th style={{ padding: '10px 8px' }}>
-              <button onClick={handleSelectPage} className="ad-logout" style={{ padding: '4px 10px' }}>Chọn trang</button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={handleSelectPage} className="ad-logout" style={{ padding: '4px 10px' }}>Chọn trang</button>
+                <button className="ad-logout am-btn-muted" style={{ padding: '4px 10px' }} onClick={clearSelection}>Bỏ chọn</button>
+              </div>
             </th>
             <th style={{ padding: '10px 8px' }}>Email</th>
             <th style={{ padding: '10px 8px' }}>Họ tên</th>
@@ -77,11 +80,43 @@ function AccountsTable({ items, loading, selected, toggleSelect, updateStatus, s
                   {isActive ? <span className="ad-status-success">Active</span> : <span className="ad-status-danger">Inactive</span>}
                 </td>
                 <td style={{ padding: '8px', textAlign: 'right' }}>
-                  {isActive ? (
-                    <button className="ad-logout" onClick={() => updateStatus(id, false)} style={{ background: '#ef4444' }}>Deactivate</button>
-                  ) : (
-                    <button className="ad-logout" onClick={() => updateStatus(id, true)}>Activate</button>
-                  )}
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                    <button 
+                      className="ad-logout" 
+                      onClick={() => onEdit && onEdit(a)}
+                      style={{ 
+                        background: '#3b82f6',
+                        padding: '6px 12px',
+                        fontSize: '12px'
+                      }}
+                    >
+                      Chỉnh sửa
+                    </button>
+                    {isActive ? (
+                      <button 
+                        className="ad-logout" 
+                        onClick={() => updateStatus(id, false)} 
+                        style={{ 
+                          background: '#ef4444',
+                          padding: '6px 12px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Deactivate
+                      </button>
+                    ) : (
+                      <button 
+                        className="ad-logout" 
+                        onClick={() => updateStatus(id, true)}
+                        style={{ 
+                          padding: '6px 12px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        Activate
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             )
