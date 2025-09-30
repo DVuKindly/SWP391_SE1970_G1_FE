@@ -1,73 +1,99 @@
-import React, { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../../providers/AuthContext';
-import Header from '../../components/Header';
-import { GoogleLogin } from '@react-oauth/google';
-import '../../styles/theme.css';
+import React, { useContext, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { AuthContext } from '../../providers/AuthContext'
+import Header from '../../components/Header'
+import { GoogleLogin } from '@react-oauth/google'
+import '../../styles/theme.css'
 
 const Login = () => {
-  const navigate = useNavigate();
-  const { loginPatient, loginWithGoogle } = useContext(AuthContext);
+  const navigate = useNavigate()
+  const { loginPatient, loginWithGoogle } = useContext(AuthContext)
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [formErrors, setFormErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showLoginChoice, setShowLoginChoice] = useState(false)
-  const openLoginChoice = () => setShowLoginChoice(true)
-  const closeLoginChoice = () => setShowLoginChoice(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [formErrors, setFormErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // validate dữ liệu form
   const validate = () => {
-    const errors = {};
+    const errors = {}
     if (!email.trim()) {
-      errors.email = 'Vui lòng nhập email ..';
+      errors.email = 'Vui lòng nhập email.'
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Email không hợp lệ ..';
+      errors.email = 'Email không hợp lệ.'
     }
+
     if (!password) {
-      errors.password = 'Vui lòng nhập mật khẩu';
+      errors.password = 'Vui lòng nhập mật khẩu.'
     }
-    return errors;
-  };
+    return errors
+  }
 
+  // handle submit với email/password
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    const errors = validate();
-    setFormErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    event.preventDefault()
+    const errors = validate()
+    setFormErrors(errors)
+    if (Object.keys(errors).length > 0) return
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
     try {
-      await loginPatient({ email, password });
-      navigate('/');
+      await loginPatient({ email, password })
+      navigate('/')
     } catch (error) {
-      setFormErrors({ api: error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.' });
+      setFormErrors({
+        api: error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại.'
+      })
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
+  // handle submit với Google
   const handleGoogleLogin = async (credentialResponse) => {
     try {
-      const idToken = credentialResponse.credential;
-      await loginWithGoogle(idToken);
-      navigate('/');
+      const idToken = credentialResponse?.credential
+      if (!idToken) throw new Error('Không lấy được token từ Google')
+
+      await loginWithGoogle(idToken)
+      navigate('/')
     } catch (err) {
       setFormErrors({
-        api: err?.message || 'Google login thất bại. Vui lòng thử lại.',
-      });
+        api: err?.message || 'Google login thất bại. Vui lòng thử lại.'
+      })
     }
-  };
+  }
 
   return (
     <div>
-      <Header onLoginClick={openLoginChoice} />
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+      <Header />
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '60vh'
+        }}
+      >
         <form
           onSubmit={handleSubmit}
-          style={{ width: '100%', maxWidth: 380, padding: 24, border: '1px solid #e5e7eb', borderRadius: 8 }}
+          style={{
+            width: '100%',
+            maxWidth: 380,
+            padding: 24,
+            border: '1px solid #e5e7eb',
+            borderRadius: 8
+          }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, marginBottom: 16 }}>
+          {/* Header */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 16
+            }}
+          >
             <h2 style={{ margin: 0 }}>Đăng nhập</h2>
             <button
               type="button"
@@ -79,7 +105,7 @@ const Login = () => {
                 color: 'var(--primary)',
                 fontSize: 13,
                 cursor: 'pointer',
-                padding: 0,
+                padding: 0
               }}
             >
               ← Về trang chủ
@@ -88,7 +114,12 @@ const Login = () => {
 
           {/* Email input */}
           <div style={{ marginBottom: 12 }}>
-            <label htmlFor="email" style={{ display: 'block', marginBottom: 6 }}>Email</label>
+            <label
+              htmlFor="email"
+              style={{ display: 'block', marginBottom: 6 }}
+            >
+              Email
+            </label>
             <input
               id="email"
               type="email"
@@ -96,36 +127,58 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nhap@email.com"
               required
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: 6
+              }}
             />
             {formErrors.email && (
-              <div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>{formErrors.email}</div>
+              <div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>
+                {formErrors.email}
+              </div>
             )}
           </div>
 
           {/* Password input */}
           <div style={{ marginBottom: 16 }}>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: 6 }}>Mật khẩu</label>
+            <label
+              htmlFor="password"
+              style={{ display: 'block', marginBottom: 6 }}
+            >
+              Mật khẩu
+            </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Nhập mật khẩu...."
+              placeholder="Nhập mật khẩu..."
               required
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: 6
+              }}
             />
             {formErrors.password && (
-              <div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>{formErrors.password}</div>
+              <div style={{ color: '#b91c1c', marginTop: 6, fontSize: 13 }}>
+                {formErrors.password}
+              </div>
             )}
           </div>
 
           {/* API error */}
           {formErrors.api && (
-            <div style={{ color: '#b91c1c', margin: '8px 0 0', fontSize: 13 }}>{formErrors.api}</div>
+            <div style={{ color: '#b91c1c', marginBottom: 12, fontSize: 13 }}>
+              {formErrors.api}
+            </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          {/* Quên mật khẩu */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <button
               type="button"
               onClick={() => navigate('/forgot-password')}
@@ -135,7 +188,7 @@ const Login = () => {
                 color: 'var(--primary)',
                 padding: 0,
                 cursor: 'pointer',
-                fontSize: 13,
+                fontSize: 13
               }}
             >
               Quên mật khẩu?
@@ -149,34 +202,32 @@ const Login = () => {
             style={{
               width: '100%',
               padding: '10px 12px',
-              background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, var(--primary), #0b5d50)',
+              background: isSubmitting
+                ? '#9ca3af'
+                : 'linear-gradient(135deg, var(--primary), #0b5d50)',
               color: '#fff',
               border: 'none',
               borderRadius: 6,
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              marginBottom: 12,
+              marginTop: 12
             }}
           >
             {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
 
-          {/* Google login button */}
-          <div style={{ textAlign: 'center', marginTop: 12 }}>
+          {/* Google login */}
+          <div style={{ marginTop: 20, textAlign: 'center' }}>
             <GoogleLogin
               onSuccess={handleGoogleLogin}
-              onError={() => setFormErrors({ api: 'Google Login không thành công' })}
+              onError={() =>
+                setFormErrors({ api: 'Google Login không thành công' })
+              }
             />
           </div>
         </form>
       </div>
-      <LoginChoiceModal
-        open={showLoginChoice}
-        onClose={closeLoginChoice}
-        onPatient={() => { setShowLoginChoice(false); /* đang ở trang patient login */ }}
-        onStaff={() => { setShowLoginChoice(false); navigate('/login-system') }}
-      />
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login
