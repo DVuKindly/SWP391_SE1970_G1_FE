@@ -4,11 +4,12 @@ export const AuthContext = createContext({
   isAuthenticated: false,
   user: null,
   tokens: null,
-  login: async () => { },
-  loginPatient: async () => { },
-  loginEmployee: async () => { },
-  logout: () => { },
-  updateProfileLocally: () => { },
+  login: async () => {},
+  loginPatient: async () => {},
+  loginEmployee: async () => {},
+  loginWithGoogle: async () => {},   // 🔥 thêm hàm google
+  logout: () => {},
+  updateProfileLocally: () => {},
 })
 
 const STORAGE_KEY = 'eclinic.auth'
@@ -34,9 +35,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   }
 
-  const doLogin = useCallback(async (url, { email, password }) => {
-    const payload = { email, password }
-
+  const doLogin = useCallback(async (url, payload) => {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -60,7 +59,6 @@ export const AuthProvider = ({ children }) => {
       envelope = await res.json()
     }
 
-    // Expect ServiceResult<AuthResponse>
     if (!envelope?.success) {
       throw new Error(envelope?.message || 'Đăng nhập thất bại')
     }
@@ -85,17 +83,31 @@ export const AuthProvider = ({ children }) => {
     return { user: nextUser, tokens: nextTokens }
   }, [])
 
-  const loginPatient = useCallback(async ({ email, password }) => {
-    return doLogin('/api/patient/auth/login', { email, password })
-  }, [doLogin])
+  const loginPatient = useCallback(
+    async ({ email, password }) => {
+      return doLogin('/api/patient/auth/login', { email, password })
+    },
+    [doLogin]
+  )
 
-  const loginEmployee = useCallback(async ({ email, password }) => {
-    return doLogin('/api/employee/auth/login', { email, password })
-  }, [doLogin])
+  const loginEmployee = useCallback(
+    async ({ email, password }) => {
+      return doLogin('/api/employee/auth/login', { email, password })
+    },
+    [doLogin]
+  )
 
-  const login = useCallback(async ({ email, password }) => {
-    return loginPatient({ email, password })
-  }, [loginPatient])
+  const login = useCallback(
+    async ({ email, password }) => {
+      return loginPatient({ email, password })
+    },
+    [loginPatient]
+  )
+
+  // 🔥 Hàm login với Google (idToken từ GoogleLogin)
+  const loginWithGoogle = useCallback(async (idToken) => {
+    return doLogin('/api/patient/auth/google-login', { idToken })
+  }, [doLogin])
 
   const logout = useCallback(() => {
     setTokens(null)
@@ -103,26 +115,31 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem(STORAGE_KEY)
   }, [])
 
-  const updateProfileLocally = useCallback((partial) => {
-    setUser((prev) => {
-      const next = { ...(prev || {}), ...(partial || {}) }
-      persist({ tokens, user: next })
-      return next
-    })
-  }, [tokens])
+  const updateProfileLocally = useCallback(
+    (partial) => {
+      setUser((prev) => {
+        const next = { ...(prev || {}), ...(partial || {}) }
+        persist({ tokens, user: next })
+        return next
+      })
+    },
+    [tokens]
+  )
 
-  const value = useMemo(() => ({
-    isAuthenticated: !!tokens?.accessToken,
-    tokens,
-    user,
-    login,
-    loginPatient,
-    loginEmployee,
-    logout,
-    updateProfileLocally,
-  }), [tokens, user, login, loginPatient, loginEmployee, logout, updateProfileLocally])
+  const value = useMemo(
+    () => ({
+      isAuthenticated: !!tokens?.accessToken,
+      tokens,
+      user,
+      login,
+      loginPatient,
+      loginEmployee,
+      loginWithGoogle,   // 🔥 expose ra context
+      logout,
+      updateProfileLocally,
+    }),
+    [tokens, user, login, loginPatient, loginEmployee, loginWithGoogle, logout, updateProfileLocally]
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
-

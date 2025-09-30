@@ -2,12 +2,13 @@ import React, { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../providers/AuthContext';
 import Header from '../../components/Header';
-import LoginChoiceModal from '../../components/LoginChoiceModal'
+import { GoogleLogin } from '@react-oauth/google';
 import '../../styles/theme.css';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { loginPatient } = useContext(AuthContext);
+  const { loginPatient, loginWithGoogle } = useContext(AuthContext);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formErrors, setFormErrors] = useState({});
@@ -19,11 +20,10 @@ const Login = () => {
   const validate = () => {
     const errors = {};
     if (!email.trim()) {
-      errors.email = 'Vui lòng nhập email ...';
+      errors.email = 'Vui lòng nhập email ..';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.email = 'Email không hợp lệ ...';
+      errors.email = 'Email không hợp lệ ..';
     }
-
     if (!password) {
       errors.password = 'Vui lòng nhập mật khẩu';
     }
@@ -47,11 +47,26 @@ const Login = () => {
     }
   };
 
+  const handleGoogleLogin = async (credentialResponse) => {
+    try {
+      const idToken = credentialResponse.credential;
+      await loginWithGoogle(idToken);
+      navigate('/');
+    } catch (err) {
+      setFormErrors({
+        api: err?.message || 'Google login thất bại. Vui lòng thử lại.',
+      });
+    }
+  };
+
   return (
     <div>
       <Header onLoginClick={openLoginChoice} />
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 380, padding: 24, border: '1px solid #e5e7eb', borderRadius: 8 }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ width: '100%', maxWidth: 380, padding: 24, border: '1px solid #e5e7eb', borderRadius: 8 }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: 0, marginBottom: 16 }}>
             <h2 style={{ margin: 0 }}>Đăng nhập</h2>
             <button
@@ -71,6 +86,7 @@ const Login = () => {
             </button>
           </div>
 
+          {/* Email input */}
           <div style={{ marginBottom: 12 }}>
             <label htmlFor="email" style={{ display: 'block', marginBottom: 6 }}>Email</label>
             <input
@@ -87,6 +103,7 @@ const Login = () => {
             )}
           </div>
 
+          {/* Password input */}
           <div style={{ marginBottom: 16 }}>
             <label htmlFor="password" style={{ display: 'block', marginBottom: 6 }}>Mật khẩu</label>
             <input
@@ -94,7 +111,7 @@ const Login = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Nhập mật khẩu"
+              placeholder="Nhập mật khẩu...."
               required
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6 }}
             />
@@ -103,6 +120,7 @@ const Login = () => {
             )}
           </div>
 
+          {/* API error */}
           {formErrors.api && (
             <div style={{ color: '#b91c1c', margin: '8px 0 0', fontSize: 13 }}>{formErrors.api}</div>
           )}
@@ -124,6 +142,7 @@ const Login = () => {
             </button>
           </div>
 
+          {/* Submit button */}
           <button
             type="submit"
             disabled={isSubmitting}
@@ -135,11 +154,19 @@ const Login = () => {
               border: 'none',
               borderRadius: 6,
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              marginBottom: 12,
             }}
           >
             {isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
 
+          {/* Google login button */}
+          <div style={{ textAlign: 'center', marginTop: 12 }}>
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={() => setFormErrors({ api: 'Google Login không thành công' })}
+            />
+          </div>
         </form>
       </div>
       <LoginChoiceModal
@@ -153,5 +180,3 @@ const Login = () => {
 };
 
 export default Login;
-
-
