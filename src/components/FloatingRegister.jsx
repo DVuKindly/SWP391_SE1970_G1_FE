@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 
-const defaultForm = { fullName: '', email: '', phone: '', content: '', appointmentDate: '' }
+const defaultForm = { fullName: '', email: '', phone: '', content: '', startDate: '' }
 
 const FloatingRegister = () => {
   const [open, setOpen] = useState(false)
@@ -9,10 +9,10 @@ const FloatingRegister = () => {
   const [submitting, setSubmitting] = useState(false)
   const [notice, setNotice] = useState({ type: '', message: '' })
 
-  // Tính toán ngày mai và ngày tối thiểu cho input date
+  // Ngày mai để làm min cho input date
   const tomorrow = new Date()
   tomorrow.setDate(tomorrow.getDate() + 1)
-  const minDate = tomorrow.toISOString().split('T')[0] // Format: YYYY-MM-DD
+  const minDate = tomorrow.toISOString().split('T')[0]
 
   const onChange = (field) => (e) => {
     const value = e.target.value
@@ -27,7 +27,7 @@ const FloatingRegister = () => {
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) next.email = 'Email không hợp lệ'
       if (!form.phone.trim()) next.phone = 'Vui lòng nhập số điện thoại'
       if (!form.content.trim()) next.content = 'Vui lòng nhập nội dung'
-      if (!form.appointmentDate.trim()) next.appointmentDate = 'Vui lòng chọn ngày khám'
+      if (!form.startDate.trim()) next.startDate = 'Vui lòng chọn ngày khám'
       return next
     }
   }, [form])
@@ -40,12 +40,12 @@ const FloatingRegister = () => {
     return () => document.removeEventListener('keydown', onEsc)
   }, [open])
 
-  // Set default appointment date to tomorrow when modal opens
+  // Gán mặc định ngày khám = ngày mai khi mở modal
   useEffect(() => {
-    if (open && !form.appointmentDate) {
-      setForm(prev => ({ ...prev, appointmentDate: minDate }))
+    if (open && !form.startDate) {
+      setForm((prev) => ({ ...prev, startDate: minDate }))
     }
-  }, [open, minDate, form.appointmentDate])
+  }, [open, minDate, form.startDate])
 
   const submit = async (e) => {
     e?.preventDefault?.()
@@ -64,7 +64,7 @@ const FloatingRegister = () => {
           email: form.email,
           phone: form.phone,
           content: form.content,
-          appointmentDate: form.appointmentDate,
+          startDate: form.startDate, // ✅ đúng key cho BE
         }),
       })
 
@@ -94,7 +94,6 @@ const FloatingRegister = () => {
 
       setNotice({ type: 'success', message: envelope?.message || 'Đăng ký thành công. Chúng tôi sẽ liên hệ sớm.' })
       setForm(defaultForm)
-      // Tự đóng sau 1.5s
       setTimeout(() => setOpen(false), 1500)
     } catch (err) {
       setNotice({ type: 'error', message: err?.message || 'Có lỗi xảy ra, vui lòng thử lại.' })
@@ -125,7 +124,9 @@ const FloatingRegister = () => {
             </button>
             <h3 className="fr-title">Đăng ký ngay</h3>
             {notice.message && (
-              <div className={notice.type === 'success' ? 'fr-success' : 'fr-error-banner'}>{notice.message}</div>
+              <div className={notice.type === 'success' ? 'fr-success' : 'fr-error-banner'}>
+                {notice.message}
+              </div>
             )}
             <form onSubmit={submit} className="fr-form">
               <div className="fr-field">
@@ -150,10 +151,10 @@ const FloatingRegister = () => {
               </div>
               <div className="fr-field">
                 <label>Ngày khám*</label>
-                <input 
-                  type="date" 
-                  value={form.appointmentDate} 
-                  onChange={onChange('appointmentDate')} 
+                <input
+                  type="date"
+                  value={form.startDate}
+                  onChange={onChange('startDate')}
                   min={minDate}
                   style={{
                     width: '100%',
@@ -164,7 +165,7 @@ const FloatingRegister = () => {
                     backgroundColor: '#fff'
                   }}
                 />
-                {errors.appointmentDate && <div className="fr-error">{errors.appointmentDate}</div>}
+                {errors.startDate && <div className="fr-error">{errors.startDate}</div>}
                 <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                   Chỉ có thể chọn từ ngày mai trở đi
                 </div>
@@ -181,5 +182,3 @@ const FloatingRegister = () => {
 }
 
 export default FloatingRegister
-
-
