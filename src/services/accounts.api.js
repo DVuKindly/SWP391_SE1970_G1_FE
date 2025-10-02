@@ -13,7 +13,7 @@ export async function getAccounts(params, tokens) {
     tokens,
     query: {
       role: params?.role,
-      keyword: params?.keyword,
+      keyword: params?.keyword?.trim() || '',
       page: params?.page || 1,
       pageSize: params?.pageSize || 10,
     },
@@ -86,5 +86,30 @@ export async function updateAccountProfile(id, payload, tokens) {
     tokens,
     body: payload,
   });
+  return true;
+}
+
+export async function updateAccountRoles(id, roleNames, tokens) {
+  await apiClient.put(`/api/admin/accounts/${id}/roles`, {
+    tokens,
+    body: { roleNames },
+  });
+  return true;
+}
+
+export async function updateAccountFull(id, payload, tokens) {
+  // Cập nhật cả profile và roles
+  const { roleNames, ...profileData } = payload;
+  
+  // Cập nhật profile trước
+  if (Object.keys(profileData).length > 0) {
+    await updateAccountProfile(id, profileData, tokens);
+  }
+  
+  // Cập nhật roles nếu có
+  if (roleNames && roleNames.length > 0) {
+    await updateAccountRoles(id, roleNames, tokens);
+  }
+  
   return true;
 }

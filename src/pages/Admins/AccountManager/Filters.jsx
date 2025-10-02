@@ -21,5 +21,3 @@ function Filters({ roles, query, setQuery, loading, onSort, sortDir }) {
 }
 
 export default Filters
-
-

@@ -16,6 +16,7 @@ function CreateStaffModal({ open, onClose, onSubmit, loading, tokens, editMode =
   // Load account data when in edit mode
   useEffect(() => {
     if (open && editMode && accountData) {
+      console.log('Account data in edit mode:', accountData) // Debug log
       setForm({
         email: accountData.email || accountData.Email || '',
         password: '', // Don't show password in edit mode
@@ -84,12 +85,17 @@ function CreateStaffModal({ open, onClose, onSubmit, loading, tokens, editMode =
       alert('Vui lòng chọn ít nhất một vai trò')
       return
     }
-    
-    // For edit mode, only send editable fields
+
     const submitData = editMode 
-      ? { fullName: form.fullName, phone: form.phone, roleNames: form.roleNames }
+      ? { 
+          email: form.email, 
+          fullName: form.fullName, 
+          phone: form.phone, 
+          roleNames: form.roleNames 
+        }
       : form
     
+    console.log('Submit data:', submitData) // Debug log
     onSubmit?.(submitData, () => setForm({ email: '', password: '', fullName: '', phone: '', roleNames: [] }))
   }
 
