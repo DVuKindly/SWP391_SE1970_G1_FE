@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getRoles,
   getAccounts,
-  getAccountByEmail,
   putAccountStatus,
   bulkAccountStatus,
   updateAccountProfile,
+  updateAccountFull,
 } from "../services/accounts.api";
 
 export default function useAccountsManager(tokens) {
@@ -23,6 +23,8 @@ export default function useAccountsManager(tokens) {
   const [messageType, setMessageType] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [hasNextPage, setHasNextPage] = useState(false);
+  const [debouncedKeyword, setDebouncedKeyword] = useState("");
+
 //Hàm xây dựng khóa sắp xếp tên
   const buildNameSortKey = useCallback((a) => {
     const nameRaw = (
@@ -52,6 +54,7 @@ export default function useAccountsManager(tokens) {
         setMessageType("");
       }, 1800);
   }, []);
+
 //Hàm lấy danh sách vai trò
   const fetchRoles = useCallback(async () => {
     try {
@@ -68,9 +71,19 @@ export default function useAccountsManager(tokens) {
               ""
         )
         .filter(Boolean);
+      
+      // Thêm "Patient" vào danh sách roles nếu chưa có
+      if (!list.includes("Patient")) {
+        list.push("Patient");
+      }
+      
       setRoles(list);
-    } catch (_) {}
+    } catch (_) {
+      // Nếu lỗi API, set roles mặc định
+      setRoles(["Admin", "Staff_Doctor", "Staff_Patient", "Patient"]);
+    }
   }, [tokens]);
+
 //Hàm lấy danh sách tài khoản
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
@@ -78,7 +91,7 @@ export default function useAccountsManager(tokens) {
       const { items, total } = await getAccounts(
         {
           role: query.role,
-          keyword: query.keyword,
+          keyword: debouncedKeyword,
           page: query.page,
           pageSize: query.pageSize,
         },
@@ -101,13 +114,22 @@ export default function useAccountsManager(tokens) {
     }
   }, [
     query.role,
-    query.keyword,
+    debouncedKeyword,
     query.page,
     query.pageSize,
     tokens,
     showMessage,
     sortDir,
+    buildNameSortKey,
   ]);
+
+  // Debounce keyword để tránh gọi API quá nhiều
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedKeyword(query.keyword?.trim() || "");
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query.keyword]);
 
   useEffect(() => {
     fetchRoles();
@@ -135,6 +157,7 @@ export default function useAccountsManager(tokens) {
       return next;
     });
   }, []);
+
 //Hàm xóa lựa chọn
   const clearSelection = useCallback(() => setSelected(new Set()), []);
 
@@ -150,6 +173,7 @@ export default function useAccountsManager(tokens) {
     },
     [tokens, showMessage, fetchAccounts]
   );
+
 //Hàm cập nhật trạng thái hàng loạt
   const updateStatusBulk = useCallback(
     async (isActive) => {
@@ -168,37 +192,21 @@ export default function useAccountsManager(tokens) {
     },
     [selected, tokens, showMessage, clearSelection, fetchAccounts]
   );
+
 //Hàm tìm kiếm theo email
   const searchByEmail = useCallback(
     async (email) => {
-      if (!email?.trim()) return;
-      try {
-        const account = await getAccountByEmail(email.trim(), tokens);
-        const normalized = (Array.isArray(account) ? account : [account]).map(
-          (a) => ({
-            ...a,
-            fullName: a.fullName || a.FullName || a.name || a.Name,
-            roles:
-              a.roles || a.Roles || a.Role || (a.Role ? [a.Role] : undefined),
-            _sortKey: buildNameSortKey(a),
-          })
-        );
-        normalized.sort((x, y) => sortDir === 'asc'
-          ? x._sortKey.localeCompare(y._sortKey, 'vi', { sensitivity: 'base' })
-          : y._sortKey.localeCompare(x._sortKey, 'vi', { sensitivity: 'base' })
-        );
-        setData({ items: normalized, total: normalized.length });
-        setQuery((p) => ({ ...p, page: 1 }));
-        clearSelection();
-        setHasNextPage(false);
-      } catch (err) {
-        showMessage(err?.message || "Có lỗi xảy ra khi tìm kiếm", "error");
-        setData({ items: [], total: 0 });
-        setHasNextPage(false);
+      if (!email?.trim()) {
+        // Nếu không có email, reset về tìm kiếm thông thường
+        setQuery((p) => ({ ...p, keyword: "", page: 1 }));
+        return;
       }
+      // Sử dụng keyword search thay vì API riêng biệt
+      setQuery((p) => ({ ...p, keyword: email.trim(), page: 1 }));
     },
-    [tokens, showMessage, clearSelection, sortDir]
+    []
   );
+
 //Hàm chuyển đổi sắp xếp
   const toggleSort = useCallback(() => {
     setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
@@ -208,18 +216,18 @@ export default function useAccountsManager(tokens) {
   const updateAccount = useCallback(
     async (id, profileData) => {
       try {
-        // Chỉ gửi các trường có thể chỉnh sửa (không bao gồm email và password)
         const updateData = {
+          email: profileData.email,
           fullName: profileData.fullName,
           phone: profileData.phone
         };
         
-        await updateAccountProfile(id, updateData, tokens);
+        await updateAccountFull(id, updateData, tokens);
         showMessage("Cập nhật thông tin tài khoản thành công", "success");
         fetchAccounts();
       } catch (err) {
         showMessage(err?.message || "Có lỗi xảy ra khi cập nhật", "error");
-        throw err; // Re-throw để component có thể xử lý
+        throw err;
       }
     },
     [tokens, showMessage, fetchAccounts]

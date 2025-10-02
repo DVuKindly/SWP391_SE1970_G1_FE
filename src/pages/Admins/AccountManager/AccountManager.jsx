@@ -3,7 +3,6 @@ import { AuthContext } from '../../../providers/AuthContext'
 import { createStaff, createAccountWithRoles } from '../../../services/accounts.api'
 import useAccountsManager from '../../../hooks/useAccountsManager'
 import Filters from './Filters'
-import SearchBar from './SearchBar'
 import AccountsTable from './AccountsTable'
 import Pagination from './Pagination'
 import './AccountManager.css'
@@ -19,7 +18,6 @@ function AccountManager() {
     showMessage, sortDir, toggleSort,
     hasNextPage, updateAccount,
   } = useAccountsManager(tokens)
-  const [emailLookup, setEmailLookup] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [createForm, setCreateForm] = useState({ email: '', password: '', fullName: '', phone: '', roleName: '' })
@@ -29,11 +27,10 @@ function AccountManager() {
   const [editLoading, setEditLoading] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState(null)
 
-// Hàm tìm kiếm theo email
-  const doSearchByEmail = async () => { await searchByEmail(emailLookup) }
 
 // Hàm xử lý chỉnh sửa tài khoản
   const handleEditAccount = (account) => {
+    console.log('Selected account for edit:', account) // Debug log
     setSelectedAccount(account)
     setEditOpen(true)
   }
@@ -120,9 +117,6 @@ function AccountManager() {
       {/* Filters */}
       <Filters roles={roles} query={query} setQuery={setQuery} loading={loading} onSort={toggleSort} sortDir={sortDir} />
 
-      {/* Search by email */}
-      <SearchBar value={emailLookup} onChange={setEmailLookup} onSearch={doSearchByEmail} />
-
       {/* Create Staff Modal */}
       {createOpen && (
         <CreateStaffModal
@@ -178,5 +172,3 @@ function AccountManager() {
 }
 
 export default AccountManager
-
-
