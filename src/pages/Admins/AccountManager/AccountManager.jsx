@@ -30,7 +30,7 @@ function AccountManager() {
 
 // Hàm xử lý chỉnh sửa tài khoản
   const handleEditAccount = (account) => {
-    console.log('Selected account for edit:', account) // Debug log
+    console.log('Selected account for edit:', account)
     setSelectedAccount(account)
     setEditOpen(true)
   }
@@ -40,7 +40,9 @@ function AccountManager() {
     setEditLoading(true)
     try {
       const accountId = selectedAccount?.id ?? selectedAccount?.accountId
-      await updateAccount(accountId, formData)
+      // Loại bỏ roleNames khỏi formData vì role không thể thay đổi trong edit mode
+      const { roleNames, ...updateData } = formData
+      await updateAccount(accountId, updateData)
       setEditOpen(false)
       setSelectedAccount(null)
     } catch (err) {

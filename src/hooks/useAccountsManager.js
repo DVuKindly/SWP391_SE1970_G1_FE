@@ -72,41 +72,94 @@ export default function useAccountsManager(tokens) {
         )
         .filter(Boolean);
       
-      // Thêm "Patient" vào danh sách roles nếu chưa có
-      if (!list.includes("Patient")) {
-        list.push("Patient");
-      }
-      
+
+      console.log('Roles received from API:', list);
       setRoles(list);
     } catch (_) {
-      // Nếu lỗi API, set roles mặc định
-      setRoles(["Admin", "Staff_Doctor", "Staff_Patient", "Patient"]);
+
+      setRoles(["Admin", "Staff_Doctor", "Staff_Patient", "Doctor"]);
     }
   }, [tokens]);
 
-//Hàm lấy danh sách tài khoản
+
+  const filterPatientAccounts = useCallback((accounts) => {
+    console.log('Accounts received:', accounts);
+    if (accounts.length > 0) {
+      console.log('Sample account roles:', accounts[0]);
+    }
+    return accounts;
+
+  }, []);
+
+
   const fetchAccounts = useCallback(async () => {
     setLoading(true);
     try {
+      const targetPageSize = query.pageSize || 10;
+      const requestedPage = query.page || 1;
+      
+
+      const adjustedPageSize = Math.ceil(targetPageSize * 1.5);
+      
       const { items, total } = await getAccounts(
         {
           role: query.role,
           keyword: debouncedKeyword,
-          page: query.page,
-          pageSize: query.pageSize,
+          page: requestedPage,
+          pageSize: adjustedPageSize,
         },
         tokens
       );
-      const normalized = items.map((a) => ({
+
+      // Lọc bỏ các tài khoản có role "Patient"
+      const filteredItems = filterPatientAccounts(items);
+      
+      // Nếu sau khi lọc không đủ records và vẫn còn data, thử fetch thêm
+      let allFilteredItems = [...filteredItems];
+      let currentPage = requestedPage + 1;
+      let totalOriginalItems = items.length;
+      
+      while (allFilteredItems.length < targetPageSize && totalOriginalItems >= adjustedPageSize && totalOriginalItems < total) {
+        const { items: moreItems } = await getAccounts(
+          {
+            role: query.role,
+            keyword: debouncedKeyword,
+            page: currentPage,
+            pageSize: adjustedPageSize,
+          },
+          tokens
+        );
+        
+        if (moreItems.length === 0) break;
+        
+        const moreFilteredItems = filterPatientAccounts(moreItems);
+        allFilteredItems = [...allFilteredItems, ...moreFilteredItems];
+        totalOriginalItems += moreItems.length;
+        currentPage++;
+        
+        // Giới hạn số lần gọi API để tránh vòng lặp vô tận
+        if (currentPage > requestedPage + 3) break;
+      }
+
+      // Chỉ lấy số lượng records theo pageSize
+      const paginatedItems = allFilteredItems.slice(0, targetPageSize);
+
+      const normalized = paginatedItems.map((a) => ({
         ...a,
         _sortKey: buildNameSortKey(a),
       }));
+      
       normalized.sort((x, y) => sortDir === 'asc'
         ? x._sortKey.localeCompare(y._sortKey, 'vi', { sensitivity: 'base' })
         : y._sortKey.localeCompare(x._sortKey, 'vi', { sensitivity: 'base' })
       );
-      setData({ items: normalized, total });
-      setHasNextPage(normalized.length >= (query.pageSize || 10));
+
+      // Ước tính total sau khi lọc dựa trên tỷ lệ lọc
+      const filterRatio = totalOriginalItems > 0 ? allFilteredItems.length / totalOriginalItems : 0.7; // Giả định 70% không phải Patient
+      const estimatedTotal = Math.floor(total * filterRatio);
+      
+      setData({ items: normalized, total: estimatedTotal });
+      setHasNextPage(paginatedItems.length >= targetPageSize && (requestedPage * targetPageSize) < estimatedTotal);
     } catch (err) {
       showMessage(err?.message || "Có lỗi xảy ra khi tải dữ liệu", "error");
     } finally {
@@ -121,6 +174,7 @@ export default function useAccountsManager(tokens) {
     showMessage,
     sortDir,
     buildNameSortKey,
+    filterPatientAccounts,
   ]);
 
   // Debounce keyword để tránh gọi API quá nhiều
@@ -220,8 +274,7 @@ export default function useAccountsManager(tokens) {
           email: profileData.email,
           fullName: profileData.fullName,
           phone: profileData.phone
-        };
-        
+        }; 
         await updateAccountFull(id, updateData, tokens);
         showMessage("Cập nhật thông tin tài khoản thành công", "success");
         fetchAccounts();
