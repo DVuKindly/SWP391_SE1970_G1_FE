@@ -2,6 +2,7 @@ import { useContext, useState } from 'react'
 import { AuthContext } from '../../providers/AuthContext'
 import './AdminDashboard.css'
 import AccountManager from './AccountManager/AccountManager'
+import RolesPage from './Roles/RolesPage'
 import { useNavigate } from 'react-router-dom'
 
 function AdminDashboard() {
@@ -29,8 +30,8 @@ function AdminDashboard() {
           {[
             { key: 'dashboard', label: 'Dashboard', icon: '📂' },
             { key: 'accounts', label: 'Accounts', icon: '👥' },
+            { key: 'roles', label: 'Roles', icon: '🔐' },
             { key: 'appointments', label: 'Appointments', icon: '📅' },
-            // { key: 'create-staff', label: 'Manage Staff', icon: '🧑‍💼' },
           ].map((i) => (
             <button
               key={i.key}
@@ -83,6 +84,9 @@ function AdminDashboard() {
         {/* Manage Staff view removed */}
         {active === 'accounts' && (
           <AccountManager />
+        )}
+        {active === 'roles' && (
+          <RolesPage />
         )}
       </main>
     </div>
