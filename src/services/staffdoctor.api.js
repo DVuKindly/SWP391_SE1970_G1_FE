@@ -95,3 +95,14 @@ export async function getStaffAccountsWithPagination(params, tokens) {
   const total = Number(json?.total ?? items.length);
   return { items, total };
 }
+
+// Create Doctor account (role Doctor)
+export async function createDoctorAccount(payload, tokens) {
+  // Payload expected by BE:
+  // { email, password, fullName, phone, title, biography, degree, education, experienceYears, certifications, departments: [{ departmentId, isPrimary }] }
+  const json = await apiClient.post('/api/employee/auth/create-doctor', {
+    tokens,
+    body: payload,
+  });
+  return json?.data ?? json;
+}

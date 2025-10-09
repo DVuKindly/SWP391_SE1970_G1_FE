@@ -1,10 +1,10 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../../providers/AuthContext'
 import './StaffDoctorDashboard.css'
 import { useNavigate } from 'react-router-dom'
 import StaffAccountManagement from './StaffAccountManagement'
+import StaffDoctorCreate from './StaffDoctorCreate'
 import StaffProfileManagement from './StaffProfileManagement'
-import StaffStatusManagement from './StaffStatusManagement'
 
 function StaffDoctorDashboard() {
   const { logout, tokens } = useContext(AuthContext)
@@ -16,6 +16,15 @@ function StaffDoctorDashboard() {
     logout()
     navigate('/')
   }
+
+  useEffect(() => {
+    const handler = (e) => {
+      const key = e?.detail?.key
+      if (key) setActive(key)
+    }
+    window.addEventListener('sd.navigate', handler)
+    return () => window.removeEventListener('sd.navigate', handler)
+  }, [])
 
   return (
     <div className="sd-wrap">
@@ -29,10 +38,10 @@ function StaffDoctorDashboard() {
           </div>
         </div>
         <nav style={{ marginTop: 14 }}>
-          {[
+          {[ 
             { key: 'staff-accounts', label: 'Quản lý tài khoản', icon: '👨‍⚕️' },
             { key: 'staff-profile', label: 'Thông tin cá nhân', icon: '👤' },
-            { key: 'staff-status', label: 'Quản lý trạng thái', icon: '⚙️' },
+            { key: 'create-doctor', label: 'Tạo bác sĩ', icon: '➕' },
           ].map((i) => (
             <button
               key={i.key}
@@ -61,9 +70,8 @@ function StaffDoctorDashboard() {
         {active === 'staff-profile' && (
           <StaffProfileManagement />
         )}
-
-        {active === 'staff-status' && (
-          <StaffStatusManagement />
+        {active === 'create-doctor' && (
+          <StaffDoctorCreate />
         )}
       </main>
     </div>

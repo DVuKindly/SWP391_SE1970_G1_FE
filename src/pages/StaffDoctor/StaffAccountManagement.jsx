@@ -1,13 +1,15 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../providers/AuthContext';
-import { 
-  getStaffAccountsWithPagination, 
-  updateStaffAccountStatus, 
+import {
+  getStaffAccountsWithPagination,
+  updateStaffAccountStatus,
   bulkUpdateStaffAccountStatus,
   resetStaffPassword,
-  getStaffAccountsByStatus 
-} from '../../services/staffdoctor.api';
+
+}
+  from '../../services/staffdoctor.api';
 import './StaffAccountManagement.css';
+import EditDoctorMockup from './EditDoctorMockup';
 
 function StaffAccountManagement() {
   const { tokens } = useContext(AuthContext);
@@ -21,6 +23,9 @@ function StaffAccountManagement() {
     pageSize: 10,
     total: 0
   });
+  const [editOpen, setEditOpen] = useState(false);
+  const [editPreset, setEditPreset] = useState(null);
+
 
   const loadAccounts = async () => {
     setLoading(true);
@@ -31,7 +36,7 @@ function StaffAccountManagement() {
         pageSize: pagination.pageSize,
         status: statusFilter !== 'all' ? statusFilter : undefined
       };
-      
+
       const result = await getStaffAccountsWithPagination(params, tokens);
       console.log('API Response:', result);
       console.log('Items:', result.items);
@@ -61,9 +66,11 @@ function StaffAccountManagement() {
     }
   };
 
+  // Removed mock create handlers
+
   const handleBulkStatusChange = async (newStatus) => {
     if (selectedAccounts.length === 0) return;
-    
+
     try {
       await bulkUpdateStaffAccountStatus(selectedAccounts, newStatus, tokens);
       setSelectedAccounts([]);
@@ -77,7 +84,7 @@ function StaffAccountManagement() {
     if (!window.confirm('Bạn có chắc chắn muốn reset mật khẩu cho tài khoản này?')) {
       return;
     }
-    
+
     try {
       await resetStaffPassword(accountId, tokens);
       alert('Mật khẩu đã được reset thành công!');
@@ -88,8 +95,8 @@ function StaffAccountManagement() {
   };
 
   const handleSelectAccount = (accountId) => {
-    setSelectedAccounts(prev => 
-      prev.includes(accountId) 
+    setSelectedAccounts(prev =>
+      prev.includes(accountId)
         ? prev.filter(id => id !== accountId)
         : [...prev, accountId]
     );
@@ -106,17 +113,17 @@ function StaffAccountManagement() {
   return (
     <div className="sam-container">
       <div className="sam-header">
-        <h2>Quản lý tài khoản Staff</h2>
+        <h2>Quản lý tài khoản Bác sĩ</h2>
         <div className="sam-actions">
           {selectedAccounts.length > 0 && (
             <div className="sam-bulk-actions">
-              <button 
+              <button
                 className="sam-btn sam-btn-success"
                 onClick={() => handleBulkStatusChange(true)}
               >
                 Kích hoạt ({selectedAccounts.length})
               </button>
-              <button 
+              <button
                 className="sam-btn sam-btn-danger"
                 onClick={() => handleBulkStatusChange(false)}
               >
@@ -224,6 +231,20 @@ function StaffAccountManagement() {
                       >
                         Reset mật khẩu
                       </button>
+                      <button
+                        className="sam-btn sam-btn-success"
+                        onClick={() => {
+                          setEditPreset({
+                            email: account.email,
+                            fullName: account.name || account.fullName || '',
+                            phone: account.phone || '',
+                            id: account.id,
+                          })
+                          setEditOpen(true)
+                        }}
+                      >
+                        Chỉnh sửa bác sĩ
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -235,7 +256,7 @@ function StaffAccountManagement() {
 
       <div className="sam-pagination">
         <div className="sam-pagination-info">
-          Hiển thị {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)} 
+          Hiển thị {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)}
           trong tổng số {pagination.total} bản ghi
         </div>
         <div className="sam-pagination-controls">
@@ -258,6 +279,14 @@ function StaffAccountManagement() {
           </button>
         </div>
       </div>
+
+      {editOpen && (
+        <EditDoctorMockup
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          preset={editPreset}
+        />
+      )}
     </div>
   );
 }
