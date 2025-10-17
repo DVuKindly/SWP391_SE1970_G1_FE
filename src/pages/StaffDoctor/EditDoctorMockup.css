@@ -1,0 +1,17 @@
+.sdm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.sdm-modal { background: #fff; width: 900px; max-width: calc(100% - 24px); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
+.sdm-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #e5e7eb; }
+.sdm-close { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+.sdm-grid { padding: 16px; display: grid; grid-template-columns: 1fr; gap: 12px; }
+.sdm-section-title { font-weight: 600; margin-top: 4px; }
+.sdm-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sdm-col-2 { grid-column: 1 / -1; }
+.sdm-input { width: 100%; padding: 9px 11px; border: 1px solid #e5e7eb; border-radius: 8px; }
+.sdm-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.sdm-dept-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; align-items: center; }
+.sdm-checkbox { display: flex; align-items: center; gap: 6px; }
+.sdm-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+.sdm-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
+.sdm-btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+.sdm-btn-danger { background: #ef4444; color: #fff; border-color: #ef4444; }
+

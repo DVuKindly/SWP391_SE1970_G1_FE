@@ -1,0 +1,12 @@
+.spc-wrap { padding: 12px; }
+.spc-title { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+.spc-grid { display: flex; flex-direction: column; gap: 14px; }
+.spc-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; }
+.spc-card-title { font-weight: 600; margin-bottom: 10px; }
+.spc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.spc-col-2 { grid-column: 1 / -1; }
+.spc-input { width: 100%; padding: 9px 11px; border: 1px solid #d1d5db; border-radius: 8px; }
+.spc-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.spc-actions { display: flex; justify-content: flex-end; }
+.spc-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fff; cursor: pointer; }
+.spc-btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
