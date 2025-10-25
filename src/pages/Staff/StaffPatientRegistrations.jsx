@@ -121,6 +121,7 @@ function StaffPatientRegistrations() {
   const [exams, setExams] = useState([])
   const [loadingExams, setLoadingExams] = useState(false)
   const [sendingPayment, setSendingPayment] = useState(false)
+  const [lastUpdateTime, setLastUpdateTime] = useState(new Date())
 
   const cleanNoteForView = (raw) => {
     if (!raw || typeof raw !== 'string') return ''
@@ -139,14 +140,24 @@ function StaffPatientRegistrations() {
       }, tokens)
       setItems(res.items || [])
       setPagination((p) => ({ ...p, total: res.total || 0 }))
+      setLastUpdateTime(new Date())
     } catch (e) {
-      console.error(e)
+      console.error('Error loading registrations:', e)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [keyword, status, pagination.page, pagination.pageSize])
+  useEffect(() => { 
+    load() 
+    
+    // Auto-refresh mỗi 30 giây
+    const intervalId = setInterval(() => {
+      load()
+    }, 30000) // 30 seconds
+    
+    return () => clearInterval(intervalId)
+  }, [keyword, status, pagination.page, pagination.pageSize, tokens])
 
   const openDetail = async (rawId) => {
     const id = rawId ?? 0
@@ -156,11 +167,10 @@ function StaffPatientRegistrations() {
     setDetail({ id })
     try {
       const data = await getRegistrationById(id, tokens)
-      // normalize id from BE fields if necessary
       const normalizedId = data?.id ?? data?.registrationRequestId ?? data?.requestId ?? id
       setDetail({ id: normalizedId, ...data })
     } catch (e) {
-      console.error(e)
+      console.error('Error loading registration detail:', e)
     }
   }
 
@@ -173,10 +183,9 @@ function StaffPatientRegistrations() {
       const data = await getRegistrationById(id, tokens)
       const normalizedId = data?.id ?? data?.registrationRequestId ?? data?.requestId ?? id
       setDetail({ id: normalizedId, ...data })
-      // do NOT prefill user note in note mode per requirement
       noteBuffer.current = ''
     } catch (e) {
-      console.error(e)
+      console.error('Error loading registration for note:', e)
     }
   }
 
@@ -189,13 +198,13 @@ function StaffPatientRegistrations() {
       setDetail((d) => d ? { ...d, status: newStatus } : d)
       if (res?.message) alert(res.message)
     } catch (e) {
+      console.error('Error updating status:', e)
       alert(e?.message || 'Có lỗi xảy ra')
     } finally {
       setSaving(false)
     }
   }
 
-  // quick action for row-level without opening modal
   const handleUpdateStatusFor = async (id, newStatus) => {
     setSaving(true)
     try {
@@ -303,9 +312,6 @@ function StaffPatientRegistrations() {
     <div className="spr-container">
       <div className="spr-header">
         <h2>Đăng ký khám</h2>
-        <div className="spr-actions">
-          {/* Save note moved into modal when mode === 'note' */}
-        </div>
       </div>
 
       <div className="spr-filters">

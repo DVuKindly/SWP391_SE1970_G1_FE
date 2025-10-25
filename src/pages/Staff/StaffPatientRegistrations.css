@@ -1,8 +1,10 @@
 .spr-container { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 0 #eef2f7 inset; }
 .spr-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; }
 .spr-header h2 { margin: 0; color: #111827; font-size: 24px; font-weight: 600; }
-.spr-actions { display: flex; gap: 8px; }
-.spr-btn { padding: 6px 8px; border-radius: 4px; border: none; background: #2563eb; color: #fff; cursor: pointer; font-size: 11px; white-space: nowrap; }
+.spr-actions { display: flex; gap: 8px; align-items: center; }
+.spr-btn { padding: 6px 8px; border-radius: 4px; border: none; background: #2563eb; color: #fff; cursor: pointer; font-size: 11px; white-space: nowrap; transition: all 0.2s; }
+.spr-btn:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
+.spr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .spr-btn-secondary { background: #6b7280; }
 .spr-btn-warning { background: #d97706; }
 .spr-btn-danger { background: #dc2626; }
@@ -34,6 +36,8 @@
 .spr-status-pending { background: #fff7ed; color: #b45309; }
 .spr-status-approved { background: #dcfce7; color: #16a34a; }
 .spr-status-invalid { background: #fee2e2; color: #dc2626; }
+.spr-status-scheduled { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+.spr-status-contacted { background: #f3e8ff; color: #7c3aed; }
 
 .spr-pagination { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #e5e7eb; }
 .spr-pagination-info { color: #6b7280; font-size: 14px; }

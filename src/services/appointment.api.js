@@ -40,9 +40,7 @@ export async function getEligiblePatients(tokens) {
 // Get doctors with schedules
 export async function getDoctorsWithSchedules(tokens) {
   const json = await apiClient.get('/api/appointments/doctors', { tokens });
-  console.log('getDoctorsWithSchedules raw response:', json);
   
-  // Backend trả về { success, message, data: [...] }
   if (json?.data) {
     return Array.isArray(json.data) ? json.data : [];
   }

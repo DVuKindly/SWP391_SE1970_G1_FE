@@ -22,17 +22,13 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
   useEffect(() => {
     if (open && registration) {
       loadDoctors();
-      // Không cần load eligible patients, dùng trực tiếp registration ID
-      console.log('Registration for appointment:', registration);
     }
   }, [open, registration]);
 
   const loadDoctors = async () => {
     setLoading(true);
     try {
-      console.log('Loading doctors with tokens:', tokens ? 'Available' : 'Missing');
       const result = await getDoctorsWithSchedules(tokens);
-      console.log('Doctors with schedules:', result);
       setDoctors(result || []);
     } catch (error) {
       console.error('Error loading doctors:', error);
@@ -44,20 +40,11 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
 
   const loadEligiblePatients = async () => {
     try {
-      console.log('Loading eligible patients with tokens:', tokens ? 'Available' : 'Missing');
       const result = await getEligiblePatients(tokens);
-      console.log('Eligible patients response:', result);
-      
       const patients = Array.isArray(result) ? result : [];
       setEligiblePatients(patients);
       
-      // Tự động chọn patient dựa trên email/phone từ registration
       if (registration && patients.length > 0) {
-        console.log('Looking for patient matching registration:', {
-          email: registration.email,
-          phone: registration.phoneNumber || registration.phone
-        });
-        
         const matchedPatient = patients.find(
           p => {
             const match = p.email?.toLowerCase() === registration.email?.toLowerCase() || 
@@ -65,41 +52,25 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
                    p.phone === registration.phoneNumber ||
                    p.phoneNumber === registration.phone ||
                    p.phone === registration.phone;
-            if (match) {
-              console.log('Found matching patient:', p);
-            }
             return match;
           }
         );
         
         if (matchedPatient) {
-          console.log('✅ Auto-selected patient:', matchedPatient);
           setSelectedPatient(matchedPatient);
         } else {
-          console.warn('❌ No matching patient found');
-          console.warn('Registration data:', registration);
-          console.warn('Available patients:', patients.map(p => ({ 
-            id: p.patientId || p.id, 
-            name: p.fullName || p.name,
-            email: p.email, 
-            phone: p.phoneNumber || p.phone 
-          })));
-          
-          // Thử tìm bằng tên
           const nameMatch = patients.find(p => 
             (p.name || p.fullName)?.toLowerCase().includes(registration.fullName?.toLowerCase()) ||
             registration.fullName?.toLowerCase().includes((p.name || p.fullName)?.toLowerCase())
           );
           
           if (nameMatch) {
-            console.log('✅ Found patient by name match:', nameMatch);
             setSelectedPatient(nameMatch);
           }
         }
       }
     } catch (error) {
       console.error('Error loading eligible patients:', error);
-      console.error('Error details:', error.response || error.message);
     }
   };
 
@@ -108,42 +79,19 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
     setLoading(true);
     
     try {
-      // Load tất cả appointments hiện có
       const allAppointments = await getAppointments({}, tokens);
-      console.log('=== DEBUG APPOINTMENTS ===');
-      console.log('All appointments:', allAppointments);
-      console.log('All appointments array?', Array.isArray(allAppointments));
-      console.log('Number of appointments:', allAppointments?.length);
-      
-      // Log first appointment để xem structure
-      if (allAppointments?.length > 0) {
-        console.log('First appointment structure:', allAppointments[0]);
-        console.log('Available fields:', Object.keys(allAppointments[0]));
-      }
-      
-      // Đảm bảo allAppointments là array
       const appointmentsArray = Array.isArray(allAppointments) ? allAppointments : [];
       
-      // Lọc appointments của doctor này
       const selectedDoctorId = doctor.doctorId || doctor.DoctorId || doctor.id || doctor.Id;
-      console.log('Selected doctor ID:', selectedDoctorId);
-      
       const doctorAppointments = appointmentsArray.filter(apt => {
         const aptDoctorId = apt.doctorId || apt.DoctorId || apt.doctor_id || apt.Doctor_Id;
-        console.log('Comparing:', aptDoctorId, '===', selectedDoctorId, '?', aptDoctorId === selectedDoctorId);
         return aptDoctorId === selectedDoctorId;
       });
-      console.log('Doctor appointments:', doctorAppointments);
-      console.log('Number of doctor appointments:', doctorAppointments.length);
       
-      // Parse work patterns to available slots
       const slots = [];
-      console.log('Doctor selected:', doctor);
-      console.log('Work patterns:', doctor.workPatterns);
       
       if (doctor.workPatterns && Array.isArray(doctor.workPatterns)) {
         doctor.workPatterns.forEach(pattern => {
-          console.log('Processing pattern:', pattern);
           
           // Nếu pattern có isWorking = true, tạo slots từ startTime/endTime
           if (pattern.isWorking) {
@@ -170,27 +118,32 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
               const slotEnd = new Date(nextDate);
               slotEnd.setHours(hour + 1, startMin || 0, 0, 0);
               
-              // Kiểm tra xem slot này đã được đặt chưa
+              // Format local datetime string (YYYY-MM-DDTHH:mm:ss) - không có timezone
+              const formatLocalDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+              };
+              
               const isBooked = doctorAppointments.some(apt => {
                 const aptStart = new Date(apt.startTime);
                 const aptEnd = new Date(apt.endTime);
                 
-                // Check overlap: slot bị book nếu có appointment trùng thời gian
-                const hasOverlap = (slotStart < aptEnd && slotEnd > aptStart);
-                
-                if (hasOverlap) {
-                  console.log('🔴 OVERLAP DETECTED:', {
-                    slot: { start: slotStart.toISOString(), end: slotEnd.toISOString() },
-                    appointment: { start: aptStart.toISOString(), end: aptEnd.toISOString() }
-                  });
+                if (isNaN(aptStart.getTime()) || isNaN(aptEnd.getTime())) {
+                  return false;
                 }
                 
-                return hasOverlap;
+                return (slotStart < aptEnd && slotEnd > aptStart);
               });
               
+              // Lưu thời gian dưới dạng local datetime string (không có timezone)
               slots.push({
-                startTime: slotStart.toISOString(),
-                endTime: slotEnd.toISOString(),
+                startTime: formatLocalDateTime(slotStart),
+                endTime: formatLocalDateTime(slotEnd),
                 doctorId: doctor.doctorId || doctor.id,
                 doctorName: doctor.fullName || doctor.doctorName || doctor.name,
                 dayOfWeek: pattern.dayOfWeek,
@@ -201,10 +154,8 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
             }
           }
           
-          // Nếu có availableSlots trong pattern (cấu trúc cũ)
           if (pattern.availableSlots && Array.isArray(pattern.availableSlots)) {
             pattern.availableSlots.forEach(slot => {
-              // Check nếu slot đã được đặt
               const slotStart = new Date(slot.startTime);
               const slotEnd = new Date(slot.endTime);
               
@@ -227,11 +178,9 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
         });
       }
       
-      console.log('Generated slots:', slots);
-      console.log('Total slots:', slots.length);
-      console.log('Booked slots:', slots.filter(s => s.isBooked).length);
+      const availableOnlySlots = slots.filter(slot => !slot.isBooked);
       
-      setAvailableSlots(slots);
+      setAvailableSlots(availableOnlySlots);
       setStep(2);
     } catch (error) {
       console.error('Error loading appointments:', error);
@@ -242,19 +191,10 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
   };
 
   const handleSelectSlot = (slot) => {
-    if (slot.isBooked) {
-      alert('⚠️ Lịch này đã được đặt. Vui lòng chọn lịch khác.');
-      return;
-    }
     setSelectedSlot(slot);
   };
 
   const handleConfirm = async () => {
-    console.log('=== CONFIRM APPOINTMENT ===');
-    console.log('Registration:', registration);
-    console.log('Selected Doctor:', selectedDoctor);
-    console.log('Selected Slot:', selectedSlot);
-    
     if (!selectedDoctor || !selectedSlot) {
       alert('Vui lòng chọn bác sĩ và lịch khám');
       return;
@@ -262,16 +202,11 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
 
     setLoading(true);
     try {
-      // Dùng registrationRequestId từ registration
       const registrationRequestId = registration?.registrationRequestId || registration?.id;
-      
       const doctorId = selectedDoctor.doctorId || 
                       selectedDoctor.id || 
                       selectedDoctor.Id || 
                       selectedDoctor.DoctorId;
-      
-      console.log('Using registrationRequestId:', registrationRequestId);
-      console.log('Doctor ID:', doctorId);
       
       if (!registrationRequestId) {
         alert('Không tìm thấy ID đăng ký. Vui lòng kiểm tra lại.');
@@ -286,18 +221,14 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
       }
       
       const payload = {
-        registrationRequestId: registrationRequestId,  // Đổi từ patientId sang registrationRequestId
+        registrationRequestId: registrationRequestId,
         doctorId: doctorId,
-        // Convert to local datetime string without timezone (YYYY-MM-DDTHH:mm:ss)
-        startTime: new Date(selectedSlot.startTime).toISOString().slice(0, 19),
-        endTime: new Date(selectedSlot.endTime).toISOString().slice(0, 19),
+        startTime: selectedSlot.startTime,
+        endTime: selectedSlot.endTime,
         note: note || `Đặt lịch từ đăng ký ${registration?.fullName || registration?.email || ''}`
       };
-
-      console.log('Creating appointment with payload:', payload);
       
       const result = await createAppointment(payload, tokens);
-      console.log('Appointment created successfully:', result);
       
       alert('Đặt lịch khám thành công!');
       if (onSuccess) onSuccess();
@@ -436,17 +367,17 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
               </div>
 
               {availableSlots.length === 0 ? (
-                <div className="bam-empty">Bác sĩ này chưa có lịch làm việc</div>
+                <div className="bam-empty">Không còn lịch trống. Vui lòng chọn bác sĩ khác.</div>
               ) : (
                 <div className="bam-slots-container">
                   {availableSlots.map((slot, index) => (
                     <div
                       key={index}
-                      className={`bam-slot-card ${slot.isBooked ? 'booked' : ''} ${
+                      className={`bam-slot-card ${
                         selectedSlot === slot ? 'selected' : ''
                       }`}
-                      onClick={() => !slot.isBooked && handleSelectSlot(slot)}
-                      style={slot.isBooked ? { pointerEvents: 'none' } : {}}
+                      onClick={() => handleSelectSlot(slot)}
+                      title="Click để chọn lịch này"
                     >
                       <div className="bam-slot-date">
                         {formatDate(slot.startTime)} - {getDayOfWeekLabel(slot.dayOfWeek)}
@@ -454,9 +385,6 @@ function BookAppointmentModal({ open, onClose, registration, onSuccess }) {
                       <div className="bam-slot-time">
                         {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                       </div>
-                      {slot.isBooked && (
-                        <div className="bam-slot-status">Đã đặt</div>
-                      )}
                     </div>
                   ))}
                 </div>
