@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 import StaffPatientManagement from './StaffPatientManagement'
 import StaffPatientRegistrations from './StaffPatientRegistrations'
 import StaffPatientCreate from './StaffPatientCreate'
+import StaffAppointments from './StaffAppointments'
+import StaffBookedAppointments from './StaffBookedAppointments'
 
 function StaffPatientDashboard() {
   const { logout, tokens } = useContext(AuthContext)
@@ -39,6 +41,8 @@ function StaffPatientDashboard() {
         <nav style={{ marginTop: 14 }}>
           {[ 
             { key: 'patient-registrations', label: 'Đăng ký khám', icon: '📝' },
+            { key: 'appointments', label: 'Đặt Lịch Khám', icon: '📅' },
+            { key: 'booked-appointments', label: 'Lịch hẹn đã đặt', icon: '✅' },
             { key: 'patient-accounts', label: 'Quản lý tài khoản bệnh nhân', icon: '👩‍⚕️' },
             { key: 'create-patient', label: 'Tạo bệnh nhân', icon: '➕' },
           ].map((i) => (
@@ -63,6 +67,12 @@ function StaffPatientDashboard() {
 
         {active === 'patient-registrations' && (
           <StaffPatientRegistrations />
+        )}
+        {active === 'appointments' && (
+          <StaffAppointments />
+        )}
+        {active === 'booked-appointments' && (
+          <StaffBookedAppointments />
         )}
         {active === 'patient-accounts' && (
           <StaffPatientManagement />
