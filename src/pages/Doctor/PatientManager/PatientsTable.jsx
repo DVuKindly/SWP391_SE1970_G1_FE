@@ -47,7 +47,6 @@ function PatientsTable({ items, loading, selected, toggleSelect, updateStatus, s
                 <td style={{ padding: '8px' }}>{isActive ? <span className="dd-status-success">Active</span> : <span className="dd-status-danger">Inactive</span>}</td>
                 <td style={{ padding: '8px', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                    <button className="dd-logout" onClick={() => onReset(id)} style={{ background: '#eab308', padding: '6px 12px', fontSize: '12px' }}>Reset Password</button>
                     {isActive ? (
                       <button className="dd-logout" onClick={() => updateStatus(id, false)} style={{ background: '#ef4444', padding: '6px 12px', fontSize: '12px' }}>Deactivate</button>
                     ) : (
