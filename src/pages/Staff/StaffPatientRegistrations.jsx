@@ -7,6 +7,8 @@ import {
   postRegistrationNote,
   putRegistrationInvalid,
 } from '../../services/staffpatient.api'
+import { getExams } from '../../services/exam.api'
+import { createPaymentForRegistration } from '../../services/payment.api'
 import './StaffPatientRegistrations.css'
 
 function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveNoteHandler, onUpdateStatus, onMarkInvalid, saving }) {
@@ -114,6 +116,11 @@ function StaffPatientRegistrations() {
   const [saving, setSaving] = useState(false)
   const [modalMode, setModalMode] = useState('view')
   const noteBuffer = useMemo(() => ({ current: '' }), [])
+  const [showExamModal, setShowExamModal] = useState(false)
+  const [selectedRegistration, setSelectedRegistration] = useState(null)
+  const [exams, setExams] = useState([])
+  const [loadingExams, setLoadingExams] = useState(false)
+  const [sendingPayment, setSendingPayment] = useState(false)
 
   const cleanNoteForView = (raw) => {
     if (!raw || typeof raw !== 'string') return ''
@@ -239,6 +246,59 @@ function StaffPatientRegistrations() {
     }
   }
 
+  const openExamSelection = async (registration) => {
+    setSelectedRegistration(registration)
+    setShowExamModal(true)
+    setLoadingExams(true)
+    try {
+      const examsData = await getExams(tokens)
+      setExams(examsData)
+    } catch (e) {
+      alert('Không thể tải danh sách gói khám: ' + (e?.message || 'Có lỗi xảy ra'))
+      setShowExamModal(false)
+    } finally {
+      setLoadingExams(false)
+    }
+  }
+
+  const handleSendPayment = async (exam) => {
+    if (!selectedRegistration) return
+    
+    // Kiểm tra trạng thái đăng ký
+    if (selectedRegistration.status !== 'Contacted') {
+      alert('Chỉ có thể gửi thanh toán khi đăng ký đã ở trạng thái "Kết nối". Vui lòng cập nhật trạng thái trước.')
+      return
+    }
+    
+    setSendingPayment(true)
+    try {
+      const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
+      const examId = exam.id || exam.examId
+      
+      if (!registrationId || !examId) {
+        alert('Thiếu thông tin đăng ký hoặc gói khám')
+        return
+      }
+      
+      const result = await createPaymentForRegistration(registrationId, examId, tokens)
+      
+      if (result?.paymentUrl) {
+        alert(`Gửi yêu cầu thanh toán thành công! Liên hệ với khách hàng để kiểm tra thanh toán`)
+      } else {
+        alert('Gửi yêu cầu thanh toán thành công!')
+      }
+      
+      setShowExamModal(false)
+      setSelectedRegistration(null)
+      // Refresh the registration list
+      await load()
+    } catch (e) {
+      alert('Gửi yêu cầu thanh toán thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
+    } finally {
+      setSendingPayment(false)
+    }
+  }
+
   return (
     <div className="spr-container">
       <div className="spr-header">
@@ -299,6 +359,7 @@ function StaffPatientRegistrations() {
                       <button className="spr-btn spr-btn-success" onClick={() => openNote(rid)}>Ghi chú</button>
                       <button className="spr-btn" onClick={async () => { await handleUpdateStatusFor(rid, 'Contacted') }}>Kết nối</button>
                       <button className="spr-btn spr-btn-danger" onClick={async () => { if (window.confirm('Đánh dấu không hợp lệ?')) { await putRegistrationInvalid(rid, tokens); load(); }}}>Không hợp lệ</button>
+                      <button className="spr-btn spr-btn-warning" onClick={() => openExamSelection(r)}>Gửi Thanh Toán</button>
                     </div>
                   </td>
                 </tr>
@@ -331,6 +392,65 @@ function StaffPatientRegistrations() {
         onMarkInvalid={handleMarkInvalid}
         saving={saving}
       />
+
+      {/* Exam Selection Modal */}
+      {showExamModal && (
+        <div className="sprm-overlay">
+          <div className="sprm-modal">
+            <div className="sprm-header">
+              <h3>Chọn Gói Khám</h3>
+              <button className="sprm-close" onClick={() => { setShowExamModal(false); setSelectedRegistration(null); }}>×</button>
+            </div>
+            <div className="sprm-body">
+              {selectedRegistration && (
+                <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '5px' }}>
+                  <strong>Bệnh nhân:</strong> {selectedRegistration.fullName || selectedRegistration.name}<br/>
+                  <strong>Email:</strong> {selectedRegistration.email}<br/>
+                  <strong>SĐT:</strong> {selectedRegistration.phone || selectedRegistration.phoneNumber}<br/>
+                  <strong>Trạng thái:</strong> <span style={{ 
+                    color: selectedRegistration.status === 'Contacted' ? '#16a34a' : '#dc2626',
+                    fontWeight: 'bold'
+                  }}>{selectedRegistration.status}</span>
+                  {selectedRegistration.status !== 'Contacted' && (
+                    <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#fef2f2', borderRadius: '4px', border: '1px solid #fecaca' }}>
+                      <small style={{ color: '#dc2626' }}>
+                        ⚠️ Chỉ có thể gửi thanh toán khi đăng ký ở trạng thái "Contacted". Vui lòng cập nhật trạng thái trước.
+                      </small>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {loadingExams ? (
+                <div className="sprm-loading">Đang tải danh sách gói khám...</div>
+              ) : exams.length === 0 ? (
+                <div className="sprm-loading">Không có gói khám nào</div>
+              ) : (
+                <div className="exam-list">
+                  {exams.map((exam) => (
+                    <div key={exam.id} className="exam-item">
+                      <div className="exam-info">
+                        <h4>{exam.name || exam.title}</h4>
+                        <p className="exam-description">{exam.description}</p>
+                        <div className="exam-price">
+                          <strong>Số tiền: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(exam.price || exam.amount || 0)}</strong>
+                        </div>
+                      </div>
+                      <button 
+                        className="spr-btn spr-btn-success"
+                        onClick={() => handleSendPayment(exam)}
+                        disabled={sendingPayment || selectedRegistration?.status !== 'Contacted'}
+                      >
+                        {sendingPayment ? 'Đang gửi...' : 'Chọn Gói'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
