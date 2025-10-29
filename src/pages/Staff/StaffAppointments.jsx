@@ -20,22 +20,22 @@ function StaffAppointments() {
   const loadPaidRegistrations = async () => {
     setLoading(true);
     try {
-      console.log('=== LOADING PAID REGISTRATIONS ===');
-      console.log('Tokens:', tokens);
-      console.log('Has access token?', !!tokens?.accessToken);
-      
+      // Backend may return multiple payment-related statuses (e.g. 'Paid' and 'Direct_Payment').
+      // Some registrations marked as Direct_Payment should also be bookable — fetch the page
+      // then filter client-side for the payment statuses we care about.
       const params = {
         keyword: searchKeyword,
         page: pagination.page,
         pageSize: pagination.pageSize,
-        status: 'Paid' // Chỉ lấy những registration đã thanh toán
+        // do not pass status here so we can include multiple payment statuses
       };
-      
+
       const result = await getRegistrations(params, tokens);
-      console.log('=== DEBUG PAID REGISTRATIONS ===');
-      console.log('API result:', result);
-      
-      setRegistrations(result.items || []);
+      const allItems = result.items || [];
+      // Keep registrations that are either Paid or Direct_Payment
+      const payableStatuses = new Set(['Paid', 'Direct_Payment']);
+      const filtered = allItems.filter(item => payableStatuses.has(item?.status));
+      setRegistrations(filtered);
       setPagination(prev => ({ ...prev, total: result.total || 0 }));
     } catch (error) {
       console.error('Error loading paid registrations:', error);
@@ -52,11 +52,7 @@ function StaffAppointments() {
 
   useEffect(() => {
     loadPaidRegistrations();
-  }, [searchKeyword, pagination.page]);
-
-  useEffect(() => {
-    loadPaidRegistrations();
-  }, [searchKeyword, pagination.page]);
+  }, [searchKeyword, pagination.page, tokens]);
 
   const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
@@ -77,7 +73,8 @@ function StaffAppointments() {
       'Paid': 'Đã thanh toán',
       'Completed': 'Hoàn thành',
       'Cancelled': 'Đã hủy',
-      'Invalid': 'Không hợp lệ'
+      'Invalid': 'Không hợp lệ',
+      'Direct_Payment': 'Thanh Toán Trực Tiếp'
     };
     return statusMap[status] || status;
   };
@@ -89,7 +86,8 @@ function StaffAppointments() {
       'Paid': 'confirmed',
       'Completed': 'completed',
       'Cancelled': 'cancelled',
-      'Invalid': 'rejected'
+      'Invalid': 'rejected',
+      'Direct_Payment': 'direct_payment'
     };
     return statusClassMap[status] || 'pending';
   };
@@ -135,7 +133,7 @@ function StaffAppointments() {
               <th>Họ tên</th>
               <th>Email</th>
               <th>SĐT</th>
-              <th>Ngày đăng ký</th>
+              {/* <th>Ngày đăng ký</th> */}
               <th>Trạng thái</th>
               <th>Ghi chú</th>
               <th>Thao tác</th>
@@ -159,7 +157,7 @@ function StaffAppointments() {
                   <td>{reg.fullName || reg.name || 'N/A'}</td>
                   <td>{reg.email || 'N/A'}</td>
                   <td>{reg.phoneNumber || reg.phone || 'N/A'}</td>
-                  <td>{formatDateTime(reg.registrationDate || reg.createdAt)}</td>
+                  {/* <td>{formatDateTime(reg.registrationDate || reg.createdAt)}</td> */}
                   <td>
                     <span className={`sa-status ${getStatusClass(reg.status)}`}>
                       {getStatusLabel(reg.status)}

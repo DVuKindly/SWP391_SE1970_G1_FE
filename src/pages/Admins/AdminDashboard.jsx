@@ -3,6 +3,7 @@ import { AuthContext } from '../../providers/AuthContext'
 import './AdminDashboard.css'
 import AccountManager from './AccountManager/AccountManager'
 import RolesPage from './Roles/RolesPage'
+import ExamManager from './ExamManager/ExamManager'
 import { useNavigate } from 'react-router-dom'
 
 function AdminDashboard() {
@@ -31,6 +32,7 @@ function AdminDashboard() {
             { key: 'dashboard', label: 'Dashboard', icon: '📂' },
             { key: 'accounts', label: 'Accounts', icon: '👥' },
             { key: 'roles', label: 'Roles', icon: '🔐' },
+            { key: 'exams', label: 'Exam Packages', icon: '🏥' },
             { key: 'appointments', label: 'Appointments', icon: '📅' },
           ].map((i) => (
             <button
@@ -87,6 +89,9 @@ function AdminDashboard() {
         )}
         {active === 'roles' && (
           <RolesPage />
+        )}
+        {active === 'exams' && (
+          <ExamManager />
         )}
       </main>
     </div>

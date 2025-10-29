@@ -20,3 +20,10 @@ export async function handleVnPayReturn(params, tokens) {
   });
   return json;
 }
+
+export async function directPayment(userId, tokens) {
+  const json = await apiClient.get(`/api/staff-patient/registrations/${userId}/direct-payment`, {
+    tokens
+  });
+  return json;
+}
