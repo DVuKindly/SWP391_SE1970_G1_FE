@@ -39,7 +39,7 @@ export async function getEligiblePatients(tokens) {
 
 // Get doctors with schedules
 export async function getDoctorsWithSchedules(tokens) {
-  const json = await apiClient.get('/api/appointments/doctors', { tokens });
+  const json = await apiClient.get('api/appointments/scheduledoctors', { tokens });
   
   if (json?.data) {
     return Array.isArray(json.data) ? json.data : [];
@@ -69,4 +69,31 @@ export async function approveAppointment(id, approve, tokens) {
 export async function deleteAppointment(id, tokens) {
   const json = await apiClient.delete(`/api/appointments/${id}`, { tokens });
   return json?.data || json;
+}
+
+// Get filtered appointments (uses appointments_Filter endpoint)
+export async function getAppointmentsFiltered(params, tokens) {
+  const query = {};
+  
+  if (params?.status && params.status !== 'all') {
+    query.status = params.status;
+  }
+  
+  if (params?.keyword?.trim()) {
+    query.keyword = params.keyword.trim();
+  }
+
+  const json = await apiClient.get('/api/appointments/appointments_Filter', {
+    tokens,
+    query
+  });
+
+  // Handle different response formats
+  if (json?.data?.data) {
+    return Array.isArray(json.data.data) ? json.data.data : [];
+  }
+  if (json?.data) {
+    return Array.isArray(json.data) ? json.data : [];
+  }
+  return Array.isArray(json) ? json : [];
 }

@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useState } from 'react'
 import { AuthContext } from '../../providers/AuthContext'
 import {
   getRegistrations,
+  getRegistrationsFiltered,
   getRegistrationById,
   putRegistrationStatus,
   postRegistrationNote,
@@ -134,11 +135,12 @@ function StaffPatientRegistrations() {
   const load = async () => {
     setLoading(true)
     try {
-      const res = await getRegistrations({
-        keyword,
+      // Use new filter API
+      const res = await getRegistrationsFiltered({
+        email: keyword.trim(), // API expects email param for search
+        status: status !== 'all' ? status : undefined,
         page: pagination.page,
         pageSize: pagination.pageSize,
-        status: status !== 'all' ? status : undefined,
       }, tokens)
       setItems(res.items || [])
       setPagination((p) => ({ ...p, total: res.total || 0 }))
@@ -150,16 +152,28 @@ function StaffPatientRegistrations() {
     }
   }
 
+  // Debounce search keyword
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      load()
+    }, 500) // Wait 500ms after user stops typing
+    
+    return () => clearTimeout(timer)
+  }, [keyword])
+
+  // Reload immediately when status or pagination changes
   useEffect(() => { 
     load() 
-    
-    // Auto-refresh mỗi 30 giây
+  }, [status, pagination.page, pagination.pageSize])
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
     const intervalId = setInterval(() => {
       load()
-    }, 30000) // 30 seconds
+    }, 30000)
     
     return () => clearInterval(intervalId)
-  }, [keyword, status, pagination.page, pagination.pageSize, tokens])
+  }, [])
 
   const openDetail = async (rawId) => {
     const id = rawId ?? 0

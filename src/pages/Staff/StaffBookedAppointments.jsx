@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../providers/AuthContext';
-import { getAppointments } from '../../services/appointment.api';
+import { getAppointments, getAppointmentsFiltered } from '../../services/appointment.api';
 import './StaffBookedAppointments.css';
 
 function StaffBookedAppointments() {
@@ -16,9 +16,13 @@ function StaffBookedAppointments() {
       console.log('=== LOADING APPOINTMENTS ===');
       console.log('Tokens:', tokens);
       console.log('Status filter:', statusFilter);
+      console.log('Search keyword:', searchKeyword);
       
-      const params = statusFilter !== 'all' ? { status: statusFilter } : {};
-      const result = await getAppointments(params, tokens);
+      // Use new filter API
+      const result = await getAppointmentsFiltered({
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        keyword: searchKeyword.trim() || undefined
+      }, tokens);
       console.log('Appointments result:', result);
       
       setAppointments(result || []);
@@ -32,21 +36,17 @@ function StaffBookedAppointments() {
     }
   };
 
+  // Debounce search - wait 500ms after user stops typing
   useEffect(() => {
-    loadAppointments();
-  }, [statusFilter]);
+    const timer = setTimeout(() => {
+      loadAppointments();
+    }, 500);
 
-  // Filter appointments by search keyword
-  const filteredAppointments = appointments.filter(app => {
-    if (!searchKeyword) return true;
-    const keyword = searchKeyword.toLowerCase();
-    return (
-      app.patientName?.toLowerCase().includes(keyword) ||
-      app.doctorName?.toLowerCase().includes(keyword) ||
-      app.examName?.toLowerCase().includes(keyword) ||
-      app.transactionCode?.toLowerCase().includes(keyword)
-    );
-  });
+    return () => clearTimeout(timer);
+  }, [statusFilter, searchKeyword]); // Reload when search changes
+
+  // No need for client-side filtering anymore - API handles it
+  const filteredAppointments = appointments;
 
   const formatDateTime = (dateString) => {
     if (!dateString) return 'N/A';
