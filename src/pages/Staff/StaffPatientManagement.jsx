@@ -36,12 +36,6 @@ function StaffPatientManagement() {
       };
 
       const result = await getPatientAccountsWithPagination(params, tokens);
-      console.log('API Response:', result);
-      console.log('Items:', result.items);
-      if (result.items && result.items.length > 0) {
-        console.log('First item:', result.items[0]);
-        console.log('Item keys:', Object.keys(result.items[0]));
-      }
       setPatients(result.items || []);
       setPagination(prev => ({ ...prev, total: result.total }));
     } catch (error) {

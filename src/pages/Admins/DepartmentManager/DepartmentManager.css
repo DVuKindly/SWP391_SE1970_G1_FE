@@ -1,0 +1,394 @@
+.dept-manager-container {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  margin: 20px;
+  min-height: calc(100vh - 120px);
+}
+
+.dept-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.dept-manager-header h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.dept-manager-toolbar {
+  margin-bottom: 24px;
+}
+
+.dept-search-box {
+  max-width: 400px;
+}
+
+.dept-search-input {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.dept-search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.dept-manager-content {
+  margin-top: 20px;
+}
+
+.dept-loading,
+.dept-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.dept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.dept-card {
+  background: #fff;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dept-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.dept-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.dept-card-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.dept-card-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.dept-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.dept-card-code {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.dept-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dept-btn-icon-small {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: #f3f4f6;
+}
+
+.dept-btn-icon-small:hover {
+  transform: scale(1.1);
+}
+
+.dept-btn-edit:hover {
+  background: #dbeafe;
+}
+
+.dept-btn-delete:hover {
+  background: #fee2e2;
+}
+
+.dept-card-body {
+  margin-top: 12px;
+}
+
+.dept-card-description {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  min-height: 42px;
+}
+
+.dept-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dept-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.dept-info-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.dept-info-text {
+  flex: 1;
+}
+
+/* Buttons */
+.dept-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dept-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dept-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.dept-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dept-btn-primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.dept-btn-primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.dept-btn-secondary {
+  background: #6b7280;
+  color: #fff;
+}
+
+.dept-btn-secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.dept-btn-icon {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Modal */
+.dept-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.dept-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: deptModalSlideIn 0.2s ease-out;
+}
+
+@keyframes deptModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dept-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 2px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.dept-modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.dept-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #6b7280;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.dept-modal-close:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.dept-modal-body {
+  padding: 24px;
+}
+
+.dept-form-group {
+  margin-bottom: 20px;
+}
+
+.dept-form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.dept-form-group .required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.dept-input,
+.dept-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.dept-input:focus,
+.dept-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.dept-textarea {
+  resize: vertical;
+}
+
+.dept-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.dept-modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dept-manager-container {
+    padding: 16px;
+    margin: 10px;
+  }
+
+  .dept-manager-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .dept-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dept-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .dept-modal {
+    width: 95%;
+  }
+}

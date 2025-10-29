@@ -27,12 +27,9 @@ function StaffProfileManagement() {
     setLoading(true);
     try {
       const data = await getStaffProfile(tokens);
-      console.log('Profile data from API:', data); // Debug log
       setProfile(data);
       
-      // Parse name field from API response
       const fullName = data.name || data.fullName || '';
-      console.log('Full name from API:', fullName); // Debug log
       const nameParts = fullName.split(' ');
       const firstName = nameParts.length > 0 ? nameParts[nameParts.length - 1] : '';
       const lastName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
@@ -50,13 +47,6 @@ function StaffProfileManagement() {
         education: data.education || '',
         bio: data.bio || ''
       });
-      
-      console.log('Form data set:', {
-        firstName,
-        lastName,
-        email: data.email,
-        phoneNumber: data.phone
-      }); // Debug log
     } catch (error) {
       console.error('Error loading profile:', error);
     } finally {

@@ -10,6 +10,15 @@ import {
 } from './accounts.api';
 import { getExams, getExamById } from './exam.api';
 import { createPaymentForRegistration, handleVnPayReturn } from './payment.api';
+import {
+  getAppointments,
+  getAppointmentById,
+  getEligiblePatients,
+  getDoctorsWithSchedules,
+  createAppointment,
+  approveAppointment,
+  deleteAppointment,
+} from './appointment.api';
 
 export { namedApiClient as apiClient };
 
@@ -32,11 +41,22 @@ export const payments = {
   handleVnPayReturn,
 };
 
+export const appointments = {
+  getAppointments,
+  getAppointmentById,
+  getEligiblePatients,
+  getDoctorsWithSchedules,
+  createAppointment,
+  approveAppointment,
+  deleteAppointment,
+};
+
 const services = {
   apiClient,
   accounts,
   exams,
   payments,
+  appointments,
 };
 
 export default services;

@@ -1,0 +1,294 @@
+.sba-container {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sba-header {
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 16px;
+}
+
+.sba-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.sba-subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0;
+}
+
+.sba-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.sba-search {
+  flex: 1;
+  min-width: 300px;
+}
+
+.sba-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.sba-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.sba-filter {
+  min-width: 200px;
+}
+
+.sba-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.sba-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Stats Cards */
+.sba-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.sba-stat-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.sba-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sba-stat-card.pending {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #fbbf24;
+}
+
+.sba-stat-card.confirmed {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #3b82f6;
+}
+
+.sba-stat-card.completed {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #10b981;
+}
+
+.sba-stat-icon {
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sba-stat-info {
+  flex: 1;
+}
+
+.sba-stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.sba-stat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Table */
+.sba-table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.sba-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.sba-table th {
+  background: #f8fafc;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.sba-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #334155;
+}
+
+.sba-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.sba-loading,
+.sba-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.sba-id {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.sba-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.sba-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sba-date {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.sba-time {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.sba-status {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sba-status.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sba-status.approved,
+.sba-status.confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.sba-status.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.sba-status.rejected,
+.sba-status.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sba-payment {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sba-payment.paid {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.sba-payment.unpaid {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sba-fee {
+  font-weight: 600;
+  color: #059669;
+}
+
+.sba-note {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sba-container {
+    padding: 16px;
+  }
+
+  .sba-filters {
+    flex-direction: column;
+  }
+
+  .sba-search,
+  .sba-filter {
+    min-width: 100%;
+  }
+
+  .sba-stats {
+    grid-template-columns: 1fr;
+  }
+}

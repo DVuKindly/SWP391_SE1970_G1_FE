@@ -82,6 +82,47 @@ export async function getRegistrations(params, tokens) {
   return { items, total };
 }
 
+// Get filtered registrations (uses registrations_Filter endpoint)
+export async function getRegistrationsFiltered(params, tokens) {
+  const query = {};
+  
+  if (params?.status && params.status !== 'all') {
+    query.status = params.status;
+  }
+  
+  if (params?.email?.trim()) {
+    query.email = params.email.trim();
+  }
+  
+  if (params?.page) {
+    query.page = params.page;
+  }
+  
+  if (params?.pageSize) {
+    query.pageSize = params.pageSize;
+  }
+
+  const json = await apiClient.get('/api/staff-patient/registrations_Filter', {
+    tokens,
+    query
+  });
+
+  // Handle response format
+  if (Array.isArray(json)) {
+    return { items: json, total: json.length };
+  }
+  
+  const data = json?.data || json;
+  const items = Array.isArray(data?.items)
+    ? data.items
+    : Array.isArray(data)
+    ? data
+    : [];
+  const total = Number(data?.total ?? data?.totalItems ?? items.length);
+  
+  return { items, total };
+}
+
 export async function getRegistrationById(id, tokens) {
   const json = await apiClient.get(`/api/staff-patient/registrations/${id}`, { tokens });
   return json?.data || json;
@@ -109,6 +150,15 @@ export async function postRegistrationNote(id, payload, tokens) {
 
 export async function putRegistrationInvalid(id, tokens) {
   const json = await apiClient.put(`/api/staff-patient/registrations/${id}/invalid`, { tokens });
+  return json;
+}
+
+// Direct Payment - Set exam for registration and mark as Direct_Payment
+export async function setDirectPayment(registrationId, examId, tokens) {
+  const json = await apiClient.post(`/api/staff-patient/registrations/${registrationId}/direct-payment`, {
+    tokens,
+    body: { examId }
+  });
   return json;
 }
 
