@@ -1,14 +1,16 @@
 import { useContext, useEffect, useState } from 'react'
 import { AuthContext } from '../../../providers/AuthContext'
 import { getExams, getExamById, createExam, updateExam, deleteExam } from '../../../services/exam.api'
+import { getDepartments } from '../../../services/department.api'
 import './ExamManager.css'
 
-function ExamModal({ open, onClose, exam, onSave, saving }) {
+function ExamModal({ open, onClose, exam, onSave, saving, departments }) {
   const [formData, setFormData] = useState({
     examName: '',
     description: '',
     price: '',
     duration: '',
+    departmentId: '',
     ...exam
   })
 
@@ -19,6 +21,7 @@ function ExamModal({ open, onClose, exam, onSave, saving }) {
         description: exam.description || '',
         price: exam.price || '',
         duration: exam.duration || '',
+        departmentId: exam.departmentId || '',
         ...exam
       })
     }
@@ -61,6 +64,23 @@ function ExamModal({ open, onClose, exam, onSave, saving }) {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Nhập mô tả gói khám..."
               />
+            </div>
+
+            <div className="exam-form-group">
+              <label>Khoa khám <span className="required">*</span></label>
+              <select
+                className="exam-input"
+                value={formData.departmentId}
+                onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
+                required
+              >
+                <option value="">-- Chọn khoa khám --</option>
+                {departments.map((dept) => (
+                  <option key={dept.id || dept.departmentId} value={dept.id || dept.departmentId}>
+                    {dept.name || dept.departmentName}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="exam-form-row">
@@ -108,6 +128,7 @@ function ExamModal({ open, onClose, exam, onSave, saving }) {
 function ExamManager() {
   const { tokens } = useContext(AuthContext)
   const [exams, setExams] = useState([])
+  const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [selectedExam, setSelectedExam] = useState(null)
@@ -127,8 +148,19 @@ function ExamManager() {
     }
   }
 
+  const loadDepartments = async () => {
+    try {
+      const data = await getDepartments(tokens)
+      setDepartments(data)
+    } catch (e) {
+      console.error('Error loading departments:', e)
+      // Không hiển thị alert để không làm phiền user
+    }
+  }
+
   useEffect(() => {
     loadExams()
+    loadDepartments()
   }, [tokens])
 
   const handleCreate = () => {
@@ -154,7 +186,8 @@ function ExamManager() {
         ExamName: formData.examName,
         Description: formData.description,
         Price: parseFloat(formData.price) || 0,
-        Duration: parseInt(formData.duration) || 0
+        Duration: parseInt(formData.duration) || 0,
+        DepartmentId: parseInt(formData.departmentId) || null
       }
 
       if (selectedExam?.id) {
@@ -252,6 +285,16 @@ function ExamManager() {
                     {exam.description || 'Chưa có mô tả'}
                   </p>
                   <div className="exam-card-info">
+                    {exam.departmentId && (
+                      <div className="exam-info-item">
+                        <span className="exam-info-label">Khoa:</span>
+                        <span className="exam-info-value">
+                          {departments.find(d => (d.id || d.departmentId) === exam.departmentId)?.name || 
+                           departments.find(d => (d.id || d.departmentId) === exam.departmentId)?.departmentName || 
+                           `Khoa #${exam.departmentId}`}
+                        </span>
+                      </div>
+                    )}
                     <div className="exam-info-item">
                       <span className="exam-info-label">Giá:</span>
                       <span className="exam-info-value exam-price">
@@ -284,6 +327,7 @@ function ExamManager() {
         exam={selectedExam}
         onSave={handleSave}
         saving={saving}
+        departments={departments}
       />
     </div>
   )
