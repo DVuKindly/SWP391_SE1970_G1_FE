@@ -112,6 +112,15 @@ export async function putRegistrationInvalid(id, tokens) {
   return json;
 }
 
+// Direct Payment - Set exam for registration and mark as Direct_Payment
+export async function setDirectPayment(registrationId, examId, tokens) {
+  const json = await apiClient.post(`/api/staff-patient/registrations/${registrationId}/direct-payment`, {
+    tokens,
+    body: { examId }
+  });
+  return json;
+}
+
 
 // Create patient account
 export async function createPatientAccount(payload, tokens) {

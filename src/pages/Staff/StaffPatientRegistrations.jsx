@@ -6,6 +6,7 @@ import {
   putRegistrationStatus,
   postRegistrationNote,
   putRegistrationInvalid,
+  setDirectPayment,
 } from '../../services/staffpatient.api'
 import { getExams } from '../../services/exam.api'
 import { createPaymentForRegistration } from '../../services/payment.api'
@@ -322,14 +323,15 @@ function StaffPatientRegistrations() {
     setSendingPayment(true)
     try {
       const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
+      const examId = exam.id || exam.examId
       
-      if (!registrationId) {
-        alert('Thiếu thông tin đăng ký')
+      if (!registrationId || !examId) {
+        alert('Thiếu thông tin đăng ký hoặc gói khám')
         return
       }
       
-      // Cập nhật trạng thái thành Direct_Payment
-      const res = await putRegistrationStatus(registrationId, { status: 'Direct_Payment' }, tokens)
+      // Gọi API riêng cho Direct Payment (gửi cả examId)
+      await setDirectPayment(registrationId, examId, tokens)
       
       alert('Đã chuyển sang thanh toán trực tiếp thành công!')
       
