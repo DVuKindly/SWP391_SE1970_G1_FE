@@ -13,11 +13,15 @@ import { getExams } from '../../services/exam.api'
 import { createPaymentForRegistration } from '../../services/payment.api'
 import './StaffPatientRegistrations.css'
 
+/* ============================================
+ * 📌 Modal hiển thị chi tiết / ghi chú đăng ký
+ * ============================================ */
 function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveNoteHandler, onUpdateStatus, onMarkInvalid, saving }) {
   if (!open) return null
+
+  // 🧹 Làm sạch text ghi chú (ẩn log hệ thống)
   const cleanNoteForView = (raw) => {
     if (!raw || typeof raw !== 'string') return ''
-    // Keep ONLY user-entered notes; filter out audit/system lines
     const systemKeywords = [
       'Đánh dấu không hợp lệ',
       'Không hợp lệ',
@@ -44,6 +48,7 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
       .trim()
     return cleaned
   }
+
   return (
     <div className="sprm-overlay">
       <div className="sprm-modal">
@@ -51,6 +56,7 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
           <h3>{mode === 'note' ? 'Ghi chú đăng ký' : 'Chi tiết đăng ký'}</h3>
           <button className="sprm-close" onClick={onClose}>×</button>
         </div>
+
         <div className="sprm-body">
           {!registration ? (
             <div className="sprm-loading">Đang tải...</div>
@@ -66,6 +72,7 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
                 </div>
               )}
 
+              {/* 🔸 Khu vực ghi chú */}
               <div className="sprm-section">
                 <label>Ghi chú</label>
                 {mode === 'note' ? (
@@ -86,6 +93,7 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
                 )}
               </div>
 
+              {/* 🔘 Nút hành động */}
               <div className="sprm-actions">
                 {mode === 'note' ? (
                   <>
@@ -106,8 +114,13 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
   )
 }
 
+/* ============================================
+ * 🧾 Component chính: StaffPatientRegistrations
+ * ============================================ */
 function StaffPatientRegistrations() {
   const { tokens } = useContext(AuthContext)
+
+  // ⚙️ State quản lý
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({ page: 1, pageSize: 10, total: 0 })
@@ -122,22 +135,22 @@ function StaffPatientRegistrations() {
   const [selectedRegistration, setSelectedRegistration] = useState(null)
   const [exams, setExams] = useState([])
   const [loadingExams, setLoadingExams] = useState(false)
-  const [sendingPayment, setSendingPayment ] = useState(false)
+  const [sendingPayment, setSendingPayment] = useState(false)
   const [isDirectPayment, setIsDirectPayment] = useState(false) // true = thanh toán trực tiếp, false = thanh toán online
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date())
 
+  // 🔹 Xử lý hiển thị ghi chú
   const cleanNoteForView = (raw) => {
     if (!raw || typeof raw !== 'string') return ''
-    // Remove leading metadata like: [13/10/2025 22:07] Nguyen Thanh Phuc:
     return raw.replace(/^\s*\[[^\]]+\]\s+[^:]+:\s*/, '')
   }
 
+  // 🔄 Load danh sách đăng ký
   const load = async () => {
     setLoading(true)
     try {
-      // Use new filter API
       const res = await getRegistrationsFiltered({
-        email: keyword.trim(), // API expects email param for search
+        email: keyword.trim(),
         status: status !== 'all' ? status : undefined,
         page: pagination.page,
         pageSize: pagination.pageSize,
@@ -152,35 +165,27 @@ function StaffPatientRegistrations() {
     }
   }
 
-  // Debounce search keyword
+  // 🕒 Debounce tìm kiếm
   useEffect(() => {
-    const timer = setTimeout(() => {
-      load()
-    }, 500) // Wait 500ms after user stops typing
-    
+    const timer = setTimeout(() => load(), 500)
     return () => clearTimeout(timer)
   }, [keyword])
 
-  // Reload immediately when status or pagination changes
-  useEffect(() => { 
-    load() 
-  }, [status, pagination.page, pagination.pageSize])
+  // 🔁 Reload khi đổi trạng thái / phân trang
+  useEffect(() => { load() }, [status, pagination.page, pagination.pageSize])
 
-  // Auto-refresh every 30 seconds
+  // ⏱️ Tự refresh mỗi 30 giây
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      load()
-    }, 30000)
-    
+    const intervalId = setInterval(() => load(), 30000)
     return () => clearInterval(intervalId)
   }, [])
 
+  // 🔍 Xem chi tiết đăng ký
   const openDetail = async (rawId) => {
     const id = rawId ?? 0
     setOpen(true)
     setModalMode('view')
-    // seed with id so action buttons have a valid id immediately
-    setDetail({ id })
+    setDetail({ id }) // seed id
     try {
       const data = await getRegistrationById(id, tokens)
       const normalizedId = data?.id ?? data?.registrationRequestId ?? data?.requestId ?? id
@@ -190,6 +195,7 @@ function StaffPatientRegistrations() {
     }
   }
 
+  // 🗒️ Mở modal ghi chú
   const openNote = async (rawId) => {
     const id = rawId ?? 0
     setOpen(true)
@@ -205,6 +211,7 @@ function StaffPatientRegistrations() {
     }
   }
 
+  // ✅ Cập nhật trạng thái chi tiết
   const handleUpdateStatus = async (newStatus) => {
     if (!detail?.id) return
     setSaving(true)
@@ -221,6 +228,7 @@ function StaffPatientRegistrations() {
     }
   }
 
+  // 🔄 Cập nhật trạng thái chung (dùng cho bảng)
   const handleUpdateStatusFor = async (id, newStatus) => {
     setSaving(true)
     try {
@@ -236,6 +244,7 @@ function StaffPatientRegistrations() {
     }
   }
 
+  // 🧾 Lưu ghi chú
   const handleSaveNote = async () => {
     if (!detail?.id) return
     const note = noteBuffer.current ?? ''
@@ -243,8 +252,7 @@ function StaffPatientRegistrations() {
     setSaving(true)
     try {
       const res = await postRegistrationNote(detail.id, { note }, tokens)
-      // Cập nhật UI ngay lập tức để modal Xem thấy nội dung mới
-      setDetail((d) => d ? { ...d, note } : d)
+      setDetail((d) => d ? { ...d, note } : d) // cập nhật local
       await load()
       if (res?.message) alert(res.message)
       setOpen(false)
@@ -255,272 +263,309 @@ function StaffPatientRegistrations() {
     }
   }
 
-  const handleMarkInvalid = async () => {
-    if (!detail?.id) return
-    if (!window.confirm('Đánh dấu đăng ký này là không hợp lệ?')) return
-    setSaving(true)
-    try {
-      const res = await putRegistrationInvalid(detail.id, tokens)
-      await load()
-      setDetail((d) => d ? { ...d, status: 'Invalid' } : d)
-      if (res?.message) alert(res.message)
-    } catch (e) {
-      alert(e?.message || 'Có lỗi xảy ra')
-    } finally {
-      setSaving(false)
-    }
+
+
+const handleMarkInvalid = async () => {
+  if (!detail?.id) return
+  if (!window.confirm('Đánh dấu đăng ký này là không hợp lệ?')) return
+  setSaving(true)
+  try {
+    const res = await putRegistrationInvalid(detail.id, tokens)
+    await load()
+    setDetail((d) => d ? { ...d, status: 'Invalid' } : d)
+    if (res?.message) alert(res.message)
+  } catch (e) {
+    alert(e?.message || 'Có lỗi xảy ra')
+  } finally {
+    setSaving(false)
+  }
+}
+
+// 🧾 Mở popup chọn gói khám
+const openExamSelection = async (registration, isDirect = false) => {
+  setSelectedRegistration(registration)
+  setIsDirectPayment(isDirect)
+  setShowExamModal(true)
+  setLoadingExams(true)
+  try {
+    const examsData = await getExams(tokens)
+    setExams(examsData)
+  } catch (e) {
+    alert('Không thể tải danh sách gói khám: ' + (e?.message || 'Có lỗi xảy ra'))
+    setShowExamModal(false)
+  } finally {
+    setLoadingExams(false)
+  }
+}
+
+// 📤 Gửi thanh toán online (VNPay)
+const handleSendPayment = async (exam) => {
+  if (!selectedRegistration) return
+
+  // Kiểm tra điều kiện
+  if (selectedRegistration.status !== 'Contacted') {
+    alert('Chỉ có thể gửi thanh toán khi đăng ký đã ở trạng thái "Contacted".')
+    return
   }
 
-  const openExamSelection = async (registration, isDirect = false) => {
-    setSelectedRegistration(registration)
-    setIsDirectPayment(isDirect)
-    setShowExamModal(true)
-    setLoadingExams(true)
-    try {
-      const examsData = await getExams(tokens)
-      setExams(examsData)
-    } catch (e) {
-      alert('Không thể tải danh sách gói khám: ' + (e?.message || 'Có lỗi xảy ra'))
-      setShowExamModal(false)
-    } finally {
-      setLoadingExams(false)
-    }
-  }
-
-  const handleSendPayment = async (exam) => {
-    if (!selectedRegistration) return
-    
-    // Kiểm tra trạng thái đăng ký
-    if (selectedRegistration.status !== 'Contacted') {
-      alert('Chỉ có thể gửi thanh toán khi đăng ký đã ở trạng thái "Contacted". Vui lòng cập nhật trạng thái trước.')
+  setSendingPayment(true)
+  try {
+    const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
+    const examId = exam.id || exam.examId
+    if (!registrationId || !examId) {
+      alert('Thiếu thông tin đăng ký hoặc gói khám')
       return
     }
-    
-    setSendingPayment(true)
-    try {
-      const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
-      const examId = exam.id || exam.examId
-      
-      if (!registrationId || !examId) {
-        alert('Thiếu thông tin đăng ký hoặc gói khám')
-        return
-      }
-      
-      const result = await createPaymentForRegistration(registrationId, examId, tokens)
-      
-      if (result?.paymentUrl) {
-        alert(`Gửi yêu cầu thanh toán thành công! Liên hệ với khách hàng để kiểm tra thanh toán`)
-      } else {
-        alert('Gửi yêu cầu thanh toán thành công!')
-      }
-      
-      setShowExamModal(false)
-      setSelectedRegistration(null)
-      // Refresh the registration list
-      await load()
-    } catch (e) {
-      alert('Gửi yêu cầu thanh toán thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
-    } finally {
-      setSendingPayment(false)
+
+    const result = await createPaymentForRegistration(registrationId, examId, tokens)
+    if (result?.paymentUrl) {
+      alert('Gửi yêu cầu thanh toán thành công! Liên hệ với bệnh nhân để kiểm tra thanh toán.')
+    } else {
+      alert('Gửi yêu cầu thanh toán thành công!')
     }
+
+    setShowExamModal(false)
+    setSelectedRegistration(null)
+    await load()
+  } catch (e) {
+    alert('Gửi yêu cầu thanh toán thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
+  } finally {
+    setSendingPayment(false)
+  }
+}
+
+// 💵 Đánh dấu thanh toán trực tiếp
+const handleDirectPayment = async (exam) => {
+  if (!selectedRegistration) return
+
+  if (selectedRegistration.status !== 'Contacted') {
+    alert('Chỉ có thể thanh toán trực tiếp khi đăng ký ở trạng thái "Contacted".')
+    return
   }
 
-  const handleDirectPayment = async (exam) => {
-    if (!selectedRegistration) return
-    
-    // Kiểm tra trạng thái đăng ký
-    if (selectedRegistration.status !== 'Contacted') {
-      alert('Chỉ có thể thanh toán trực tiếp khi đăng ký đã ở trạng thái "Contacted". Vui lòng cập nhật trạng thái trước.')
+  setSendingPayment(true)
+  try {
+    const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
+    const examId = exam.id || exam.examId
+    if (!registrationId || !examId) {
+      alert('Thiếu thông tin đăng ký hoặc gói khám')
       return
     }
-    
-    setSendingPayment(true)
-    try {
-      const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
-      const examId = exam.id || exam.examId
-      
-      if (!registrationId || !examId) {
-        alert('Thiếu thông tin đăng ký hoặc gói khám')
-        return
-      }
-      
-      // Gọi API riêng cho Direct Payment (gửi cả examId)
-      await setDirectPayment(registrationId, examId, tokens)
-      
-      alert('Đã chuyển sang thanh toán trực tiếp thành công!')
-      
-      setShowExamModal(false)
-      setSelectedRegistration(null)
-      // Refresh the registration list
-      await load()
-    } catch (e) {
-      alert('Cập nhật thanh toán trực tiếp thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
-    } finally {
-      setSendingPayment(false)
-    }
+
+    await setDirectPayment(registrationId, examId, tokens)
+    alert('Đã chuyển sang thanh toán trực tiếp thành công!')
+
+    setShowExamModal(false)
+    setSelectedRegistration(null)
+    await load()
+  } catch (e) {
+    alert('Cập nhật thanh toán trực tiếp thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
+  } finally {
+    setSendingPayment(false)
   }
+}
 
-  return (
-    <div className="spr-container">
-      <div className="spr-header">
-        <h2>Đăng ký khám</h2>
+/* =======================================================
+ * 📋 Giao diện chính: danh sách đăng ký + bộ lọc + actions
+ * ======================================================= */
+return (
+  <div className="spr-container">
+    <div className="spr-header">
+      <h2>Đăng ký khám</h2>
+    </div>
+
+    {/* 🔍 Bộ lọc tìm kiếm */}
+    <div className="spr-filters">
+      <div className="spr-search">
+        <input
+          className="spr-input"
+          placeholder="Tìm kiếm theo tên, email, sđt..."
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+        />
       </div>
-
-      <div className="spr-filters">
-        <div className="spr-search">
-          <input className="spr-input" placeholder="Tìm kiếm theo tên, email, sđt..." value={keyword} onChange={(e) => setKeyword(e.target.value)} />
-        </div>
-        <div className="spr-filter">
-          <select className="spr-select" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="all">Tất cả trạng thái</option>
-            <option value="Pending">Đang xử lý</option>
-            <option value="Contacted">Đã kết nối</option>
-            <option value="Direct_Payment">Thanh toán trực tiếp</option>
-            <option value="Approved">Đã duyệt</option>
-            <option value="Invalid">Không hợp lệ</option>
-          </select>
-        </div>
+      <div className="spr-filter">
+        <select
+          className="spr-select"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          <option value="all">Tất cả trạng thái</option>
+          <option value="Pending">Đang xử lý</option>
+          <option value="Contacted">Đã kết nối</option>
+          <option value="Direct_Payment">Thanh toán trực tiếp</option>
+          <option value="Approved">Đã duyệt</option>
+          {/* ➕ Trạng thái mới */}
+          <option value="Examined">Đã đến khám</option>
+          <option value="Invalid">Không hợp lệ</option>
+        </select>
       </div>
+    </div>
 
-      <div className="spr-table-container">
-        <table className="spr-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Họ tên</th>
-              <th>Email</th>
-              <th>SĐT</th>
-              <th>Ngày đăng ký</th>
-              <th>Trạng thái</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td className="spr-loading" colSpan="7">Đang tải...</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td className="spr-empty" colSpan="7">Không có dữ liệu</td></tr>
-            ) : (
-              items.map((r, idx) => {
-                const rid = r?.id ?? r?.registrationRequestId ?? r?.requestId
-                return (
+    {/* 🧾 Bảng danh sách đăng ký */}
+    <div className="spr-table-container">
+      <table className="spr-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Ngày đăng ký</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr><td className="spr-loading" colSpan="7">Đang tải...</td></tr>
+          ) : items.length === 0 ? (
+            <tr><td className="spr-empty" colSpan="7">Không có dữ liệu</td></tr>
+          ) : (
+            items.map((r, idx) => {
+              const rid = r?.id ?? r?.registrationRequestId ?? r?.requestId
+              return (
                 <tr key={rid || idx}>
                   <td>{(pagination.page - 1) * pagination.pageSize + idx + 1}</td>
                   <td>{r.fullName || r.name}</td>
                   <td>{r.email}</td>
                   <td>{r.phone || r.phoneNumber}</td>
-                  <td>{(r.createdAt || r.startDate) ? new Date(r.createdAt || r.startDate).toLocaleString('vi-VN') : 'N/A'}</td>
+                  <td>{(r.createdAt || r.startDate)
+                    ? new Date(r.createdAt || r.startDate).toLocaleString('vi-VN')
+                    : 'N/A'}
+                  </td>
                   <td>
-                    <span className={`spr-status spr-status-${(r.status || '').toLowerCase()}`}>{r.status || 'N/A'}</span>
+                    <span className={`spr-status spr-status-${(r.status || '').toLowerCase()}`}>
+                      {r.status || 'N/A'}
+                    </span>
                   </td>
                   <td>
                     <div className="spr-actions-cell">
+                      {/* 🔹 Các nút hành động */}
                       <button className="spr-btn" onClick={() => openDetail(rid)}>Xem</button>
                       <button className="spr-btn spr-btn-success" onClick={() => openNote(rid)}>Ghi chú</button>
                       <button className="spr-btn" onClick={async () => { await handleUpdateStatusFor(rid, 'Contacted') }}>Kết nối</button>
-                      <button className="spr-btn spr-btn-danger" onClick={async () => { if (window.confirm('Đánh dấu không hợp lệ?')) { await putRegistrationInvalid(rid, tokens); load(); }}}>Không hợp lệ</button>
+                      <button className="spr-btn" onClick={async () => { await handleUpdateStatusFor(rid, 'Examined') }}>Đã đến khám</button>
+                      <button className="spr-btn spr-btn-danger" onClick={async () => {
+                        if (window.confirm('Đánh dấu không hợp lệ?')) {
+                          await putRegistrationInvalid(rid, tokens)
+                          load()
+                        }
+                      }}>Không hợp lệ</button>
                       <button className="spr-btn spr-btn-warning" onClick={() => openExamSelection(r, false)}>Gửi Thanh Toán</button>
                       <button className="spr-btn spr-btn-warning" onClick={() => openExamSelection(r, true)}>Thanh Toán Trực Tiếp</button>
                     </div>
                   </td>
                 </tr>
-              )})
+              )
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+
+    {/* 🔄 Phân trang */}
+    <div className="spr-pagination">
+      <div className="spr-pagination-info">
+        Hiển thị {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)}
+        trong tổng số {pagination.total} bản ghi
+      </div>
+      <div className="spr-pagination-controls">
+        <button className="spr-btn spr-btn-secondary" disabled={pagination.page === 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}>Trước</button>
+        <span className="spr-page-info">Trang {pagination.page} / {Math.ceil((pagination.total || 0) / pagination.pageSize || 1)}</span>
+        <button className="spr-btn spr-btn-secondary" disabled={pagination.page >= Math.ceil((pagination.total || 0) / pagination.pageSize || 1)} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}>Sau</button>
+      </div>
+    </div>
+
+    {/* 📋 Modal chi tiết */}
+    <DetailModal
+      open={open}
+      onClose={() => setOpen(false)}
+      registration={detail}
+      mode={modalMode}
+      onSaveNoteRef={noteBuffer}
+      onSaveNoteHandler={handleSaveNote}
+      onUpdateStatus={handleUpdateStatus}
+      onMarkInvalid={handleMarkInvalid}
+      saving={saving}
+    />
+
+    {/* 💰 Modal chọn gói khám */}
+    {showExamModal && (
+      <div className="sprm-overlay">
+        <div className="sprm-modal">
+          <div className="sprm-header">
+            <h3>{isDirectPayment ? 'Chọn Gói Khám - Thanh Toán Trực Tiếp' : 'Chọn Gói Khám - Gửi Link Thanh Toán'}</h3>
+            <button className="sprm-close" onClick={() => { setShowExamModal(false); setSelectedRegistration(null); setIsDirectPayment(false); }}>×</button>
+          </div>
+          <div className="sprm-body">
+            {selectedRegistration && (
+              <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                <strong>Bệnh nhân:</strong> {selectedRegistration.fullName || selectedRegistration.name}<br />
+                <strong>Email:</strong> {selectedRegistration.email}<br />
+                <strong>SĐT:</strong> {selectedRegistration.phone || selectedRegistration.phoneNumber}<br />
+                <strong>Trạng thái:</strong>{' '}
+                <span style={{
+                  color: selectedRegistration.status === 'Contacted' ? '#16a34a' : '#dc2626',
+                  fontWeight: 'bold'
+                }}>{selectedRegistration.status}</span>
+
+                {/* ⚠️ Cảnh báo điều kiện thanh toán */}
+                {selectedRegistration.status !== 'Contacted' && (
+                  <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#fef2f2', borderRadius: '4px', border: '1px solid #fecaca' }}>
+                    <small style={{ color: '#dc2626' }}>
+                      ⚠️ Chỉ có thể {isDirectPayment ? 'thanh toán trực tiếp' : 'gửi thanh toán'} khi đăng ký ở trạng thái "Contacted".
+                    </small>
+                  </div>
+                )}
+
+                {/* ℹ️ Gợi ý nếu là thanh toán trực tiếp */}
+                {isDirectPayment && selectedRegistration.status === 'Contacted' && (
+                  <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#f0f9ff', borderRadius: '4px', border: '1px solid #bae6fd' }}>
+                    <small style={{ color: '#0369a1' }}>
+                      ℹ️ Sau khi chọn gói, trạng thái sẽ được chuyển sang "Direct_Payment".
+                    </small>
+                  </div>
+                )}
+              </div>
             )}
-          </tbody>
-        </table>
-      </div>
 
-      <div className="spr-pagination">
-        <div className="spr-pagination-info">
-          Hiển thị {((pagination.page - 1) * pagination.pageSize) + 1} - {Math.min(pagination.page * pagination.pageSize, pagination.total)}
-          trong tổng số {pagination.total} bản ghi
-        </div>
-        <div className="spr-pagination-controls">
-          <button className="spr-btn spr-btn-secondary" disabled={pagination.page === 1} onClick={() => setPagination(p => ({ ...p, page: p.page - 1 }))}>Trước</button>
-          <span className="spr-page-info">Trang {pagination.page} / {Math.ceil((pagination.total || 0) / pagination.pageSize || 1)}</span>
-          <button className="spr-btn spr-btn-secondary" disabled={pagination.page >= Math.ceil((pagination.total || 0) / pagination.pageSize || 1)} onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}>Sau</button>
-        </div>
-      </div>
-
-      <DetailModal
-        open={open}
-        onClose={() => setOpen(false)}
-        registration={detail}
-        mode={modalMode}
-        onSaveNoteRef={noteBuffer}
-        onSaveNoteHandler={handleSaveNote}
-        onUpdateStatus={handleUpdateStatus}
-        onMarkInvalid={handleMarkInvalid}
-        saving={saving}
-      />
-
-      {/* Exam Selection Modal */}
-      {showExamModal && (
-        <div className="sprm-overlay">
-          <div className="sprm-modal">
-            <div className="sprm-header">
-              <h3>{isDirectPayment ? 'Chọn Gói Khám - Thanh Toán Trực Tiếp' : 'Chọn Gói Khám - Gửi Link Thanh Toán'}</h3>
-              <button className="sprm-close" onClick={() => { setShowExamModal(false); setSelectedRegistration(null); setIsDirectPayment(false); }}>×</button>
-            </div>
-            <div className="sprm-body">
-              {selectedRegistration && (
-                <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-                  <strong>Bệnh nhân:</strong> {selectedRegistration.fullName || selectedRegistration.name}<br/>
-                  <strong>Email:</strong> {selectedRegistration.email}<br/>
-                  <strong>SĐT:</strong> {selectedRegistration.phone || selectedRegistration.phoneNumber}<br/>
-                  <strong>Trạng thái:</strong> <span style={{ 
-                    color: selectedRegistration.status === 'Contacted' ? '#16a34a' : '#dc2626',
-                    fontWeight: 'bold'
-                  }}>{selectedRegistration.status}</span>
-                  {selectedRegistration.status !== 'Contacted' && (
-                    <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#fef2f2', borderRadius: '4px', border: '1px solid #fecaca' }}>
-                      <small style={{ color: '#dc2626' }}>
-                        ⚠️ Chỉ có thể {isDirectPayment ? 'thanh toán trực tiếp' : 'gửi thanh toán'} khi đăng ký ở trạng thái "Contacted". Vui lòng cập nhật trạng thái trước.
-                      </small>
-                    </div>
-                  )}
-                  {isDirectPayment && selectedRegistration.status === 'Contacted' && (
-                    <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#f0f9ff', borderRadius: '4px', border: '1px solid #bae6fd' }}>
-                      <small style={{ color: '#0369a1' }}>
-                        ℹ️ Sau khi chọn gói, trạng thái sẽ được chuyển sang "Direct_Payment" (thanh toán trực tiếp tại phòng khám).
-                      </small>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {loadingExams ? (
-                <div className="sprm-loading">Đang tải danh sách gói khám...</div>
-              ) : exams.length === 0 ? (
-                <div className="sprm-loading">Không có gói khám nào</div>
-              ) : (
-                <div className="exam-list">
-                  {exams.map((exam) => (
-                    <div key={exam.id} className="exam-item">
-                      <div className="exam-info">
-                        <h4>{exam.name || exam.title}</h4>
-                        <p className="exam-description">{exam.description}</p>
-                        <div className="exam-price">
-                          <strong>Giá: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(exam.price || exam.amount || 0)}</strong>
-                        </div>
+            {/* Danh sách gói khám */}
+            {loadingExams ? (
+              <div className="sprm-loading">Đang tải danh sách gói khám...</div>
+            ) : exams.length === 0 ? (
+              <div className="sprm-loading">Không có gói khám nào</div>
+            ) : (
+              <div className="exam-list">
+                {exams.map((exam) => (
+                  <div key={exam.id} className="exam-item">
+                    <div className="exam-info">
+                      <h4>{exam.name || exam.title}</h4>
+                      <p className="exam-description">{exam.description}</p>
+                      <div className="exam-price">
+                        <strong>
+                          Giá:{' '}
+                          {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(exam.price || exam.amount || 0)}
+                        </strong>
                       </div>
-                      <button 
-                        className="spr-btn spr-btn-success"
-                        onClick={() => isDirectPayment ? handleDirectPayment(exam) : handleSendPayment(exam)}
-                        disabled={sendingPayment || selectedRegistration?.status !== 'Contacted'}
-                      >
-                        {sendingPayment ? 'Đang xử lý...' : (isDirectPayment ? 'Chọn Gói' : 'Gửi Thanh Toán')}
-                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <button
+                      className="spr-btn spr-btn-success"
+                      onClick={() => isDirectPayment ? handleDirectPayment(exam) : handleSendPayment(exam)}
+                      disabled={sendingPayment || selectedRegistration?.status !== 'Contacted'}
+                    >
+                      {sendingPayment ? 'Đang xử lý...' : (isDirectPayment ? 'Chọn Gói' : 'Gửi Thanh Toán')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
-      )}
-    </div>
-  )
-}
+      </div>
+    )}
+  </div>
+)
+} 
 
 export default StaffPatientRegistrations
