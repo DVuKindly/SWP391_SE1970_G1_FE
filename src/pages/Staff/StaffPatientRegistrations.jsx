@@ -14,9 +14,9 @@ import { createPaymentForRegistration } from '../../services/payment.api'
 import './StaffPatientRegistrations.css'
 
 /* ============================================
- * 📌 Modal hiển thị chi tiết / ghi chú đăng ký
+ * 📌 Modal hiển thị chi tiết và ghi chú đăng ký
  * ============================================ */
-function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveNoteHandler, onUpdateStatus, onMarkInvalid, saving }) {
+function DetailModal({ open, onClose, registration, onSaveNoteRef, onSaveNoteHandler, onUpdateStatus, onMarkInvalid, saving }) {
   if (!open) return null
 
   // 🧹 Làm sạch text ghi chú (ẩn log hệ thống)
@@ -53,7 +53,7 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
     <div className="sprm-overlay">
       <div className="sprm-modal">
         <div className="sprm-header">
-          <h3>{mode === 'note' ? 'Ghi chú đăng ký' : 'Chi tiết đăng ký'}</h3>
+          <h3>Chi tiết đăng ký</h3>
           <button className="sprm-close" onClick={onClose}>×</button>
         </div>
 
@@ -62,49 +62,32 @@ function DetailModal({ open, onClose, registration, mode, onSaveNoteRef, onSaveN
             <div className="sprm-loading">Đang tải...</div>
           ) : (
             <>
-              {mode !== 'note' && (
-                <div className="sprm-grid">
-                  <div className="sprm-field"><span>Họ tên</span><b>{registration.fullName || registration.name || 'N/A'}</b></div>
-                  <div className="sprm-field"><span>Email</span><b>{registration.email || 'N/A'}</b></div>
-                  <div className="sprm-field"><span>Số điện thoại</span><b>{registration.phone || registration.phoneNumber || 'N/A'}</b></div>
-                  <div className="sprm-field"><span>Ngày đăng ký</span><b>{(registration.createdAt || registration.startDate) ? new Date(registration.createdAt || registration.startDate).toLocaleString('vi-VN') : 'N/A'}</b></div>
-                  <div className="sprm-field"><span>Trạng thái</span><b>{registration.status || 'N/A'}</b></div>
-                </div>
-              )}
+              <div className="sprm-grid">
+                <div className="sprm-field"><span>Họ tên</span><b>{registration.fullName || registration.name || 'N/A'}</b></div>
+                <div className="sprm-field"><span>Email</span><b>{registration.email || 'N/A'}</b></div>
+                <div className="sprm-field"><span>Số điện thoại</span><b>{registration.phone || registration.phoneNumber || 'N/A'}</b></div>
+                <div className="sprm-field"><span>Ngày đăng ký</span><b>{(registration.createdAt || registration.startDate) ? new Date(registration.createdAt || registration.startDate).toLocaleString('vi-VN') : 'N/A'}</b></div>
+                <div className="sprm-field"><span>Trạng thái</span><b>{registration.status || 'N/A'}</b></div>
+              </div>
 
-              {/* 🔸 Khu vực ghi chú */}
+              {/* 🔸 Khu vực ghi chú - Có thể chỉnh sửa */}
               <div className="sprm-section">
                 <label>Ghi chú</label>
-                {mode === 'note' ? (
-                  <textarea
-                    className="sprm-input"
-                    rows={3}
-                    defaultValue={''}
-                    onChange={(e) => { onSaveNoteRef.current = e.target.value }}
-                    placeholder="Nhập ghi chú..."
-                  />
-                ) : (
-                  <textarea
-                    className="sprm-input"
-                    rows={3}
-                    value={cleanNoteForView(registration.note || registration.internalNote || registration.notes || registration.noteText || registration.remark || '')}
-                    readOnly
-                  />
-                )}
+                <textarea
+                  className="sprm-input"
+                  rows={4}
+                  defaultValue={cleanNoteForView(registration.note || registration.internalNote || registration.notes || registration.noteText || registration.remark || '')}
+                  onChange={(e) => { onSaveNoteRef.current = e.target.value }}
+                  placeholder="Nhập ghi chú..."
+                />
               </div>
 
               {/* 🔘 Nút hành động */}
               <div className="sprm-actions">
-                {mode === 'note' ? (
-                  <>
-                    <button className="sprm-btn sprm-btn-success" onClick={onSaveNoteHandler} disabled={saving}>Lưu ghi chú</button>
-                    <button className="sprm-btn sprm-btn-secondary" onClick={onClose}>Đóng</button>
-                  </>
-                ) : (
-                  <>
-                    <button className="sprm-btn sprm-btn-secondary" onClick={onClose}>Đóng</button>
-                  </>
-                )}
+                <button className="sprm-btn sprm-btn-success" onClick={onSaveNoteHandler} disabled={saving}>
+                  {saving ? 'Đang lưu...' : 'Lưu ghi chú'}
+                </button>
+                <button className="sprm-btn sprm-btn-secondary" onClick={onClose}>Đóng</button>
               </div>
             </>
           )}
@@ -129,7 +112,6 @@ function StaffPatientRegistrations() {
   const [open, setOpen] = useState(false)
   const [detail, setDetail] = useState(null)
   const [saving, setSaving] = useState(false)
-  const [modalMode, setModalMode] = useState('view')
   const noteBuffer = useMemo(() => ({ current: '' }), [])
   const [showExamModal, setShowExamModal] = useState(false)
   const [selectedRegistration, setSelectedRegistration] = useState(null)
@@ -155,6 +137,7 @@ function StaffPatientRegistrations() {
         page: pagination.page,
         pageSize: pagination.pageSize,
       }, tokens)
+      console.log('🔍 Registration data sample:', res.items?.[0]) // Debug payment status
       setItems(res.items || [])
       setPagination((p) => ({ ...p, total: res.total || 0 }))
       setLastUpdateTime(new Date())
@@ -180,34 +163,19 @@ function StaffPatientRegistrations() {
     return () => clearInterval(intervalId)
   }, [])
 
-  // 🔍 Xem chi tiết đăng ký
+  // 🔍 Xem chi tiết đăng ký (bao gồm cả ghi chú)
   const openDetail = async (rawId) => {
     const id = rawId ?? 0
     setOpen(true)
-    setModalMode('view')
     setDetail({ id }) // seed id
     try {
       const data = await getRegistrationById(id, tokens)
       const normalizedId = data?.id ?? data?.registrationRequestId ?? data?.requestId ?? id
       setDetail({ id: normalizedId, ...data })
+      // Khởi tạo noteBuffer với ghi chú hiện tại
+      noteBuffer.current = data?.note || data?.internalNote || data?.notes || data?.noteText || data?.remark || ''
     } catch (e) {
       console.error('Error loading registration detail:', e)
-    }
-  }
-
-  // 🗒️ Mở modal ghi chú
-  const openNote = async (rawId) => {
-    const id = rawId ?? 0
-    setOpen(true)
-    setModalMode('note')
-    setDetail({ id, note: '' })
-    try {
-      const data = await getRegistrationById(id, tokens)
-      const normalizedId = data?.id ?? data?.registrationRequestId ?? data?.requestId ?? id
-      setDetail({ id: normalizedId, ...data })
-      noteBuffer.current = ''
-    } catch (e) {
-      console.error('Error loading registration for note:', e)
     }
   }
 
@@ -219,10 +187,12 @@ function StaffPatientRegistrations() {
       const res = await putRegistrationStatus(detail.id, { status: newStatus }, tokens)
       await load()
       setDetail((d) => d ? { ...d, status: newStatus } : d)
-      if (res?.message) alert(res.message)
+      const message = res?.message || 'Cập nhật trạng thái thành công'
+      alert(message)
     } catch (e) {
       console.error('Error updating status:', e)
-      alert(e?.message || 'Có lỗi xảy ra')
+      const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
+      alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -235,10 +205,12 @@ function StaffPatientRegistrations() {
       const res = await putRegistrationStatus(id, { status: newStatus }, tokens)
       await load()
       if (detail?.id === id) setDetail((d) => d ? { ...d, status: newStatus } : d)
-      if (res?.message) alert(res.message)
+      const message = res?.message || 'Cập nhật trạng thái thành công'
+      alert(message)
     } catch (e) {
       console.error(e)
-      alert(e?.message || 'Có lỗi xảy ra')
+      const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
+      alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -254,10 +226,12 @@ function StaffPatientRegistrations() {
       const res = await postRegistrationNote(detail.id, { note }, tokens)
       setDetail((d) => d ? { ...d, note } : d) // cập nhật local
       await load()
-      if (res?.message) alert(res.message)
+      const message = res?.message || 'Lưu ghi chú thành công'
+      alert(message)
       setOpen(false)
     } catch (e) {
-      alert(e?.message || 'Có lỗi xảy ra')
+      const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
+      alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -273,9 +247,11 @@ const handleMarkInvalid = async () => {
     const res = await putRegistrationInvalid(detail.id, tokens)
     await load()
     setDetail((d) => d ? { ...d, status: 'Invalid' } : d)
-    if (res?.message) alert(res.message)
+    const message = res?.message || 'Đã đánh dấu không hợp lệ'
+    alert(message)
   } catch (e) {
-    alert(e?.message || 'Có lỗi xảy ra')
+    const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
+    alert(errorMsg)
   } finally {
     setSaving(false)
   }
@@ -291,7 +267,8 @@ const openExamSelection = async (registration, isDirect = false) => {
     const examsData = await getExams(tokens)
     setExams(examsData)
   } catch (e) {
-    alert('Không thể tải danh sách gói khám: ' + (e?.message || 'Có lỗi xảy ra'))
+    const errorMsg = e?.response?.data?.message || e?.message || 'Không thể tải danh sách gói khám'
+    alert(errorMsg)
     setShowExamModal(false)
   } finally {
     setLoadingExams(false)
@@ -318,17 +295,15 @@ const handleSendPayment = async (exam) => {
     }
 
     const result = await createPaymentForRegistration(registrationId, examId, tokens)
-    if (result?.paymentUrl) {
-      alert('Gửi yêu cầu thanh toán thành công! Liên hệ với bệnh nhân để kiểm tra thanh toán.')
-    } else {
-      alert('Gửi yêu cầu thanh toán thành công!')
-    }
+    const message = result?.message || 'Gửi yêu cầu thanh toán thành công!'
+    alert(message)
 
     setShowExamModal(false)
     setSelectedRegistration(null)
     await load()
   } catch (e) {
-    alert('Gửi yêu cầu thanh toán thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
+    const errorMsg = e?.response?.data?.message || e?.message || 'Gửi yêu cầu thanh toán thất bại'
+    alert(errorMsg)
   } finally {
     setSendingPayment(false)
   }
@@ -352,14 +327,16 @@ const handleDirectPayment = async (exam) => {
       return
     }
 
-    await setDirectPayment(registrationId, examId, tokens)
-    alert('Đã chuyển sang thanh toán trực tiếp thành công!')
+    const result = await setDirectPayment(registrationId, examId, tokens)
+    const message = result?.message || 'Đã chuyển sang thanh toán trực tiếp thành công!'
+    alert(message)
 
     setShowExamModal(false)
     setSelectedRegistration(null)
     await load()
   } catch (e) {
-    alert('Cập nhật thanh toán trực tiếp thất bại: ' + (e?.message || 'Có lỗi xảy ra'))
+    const errorMsg = e?.response?.data?.message || e?.message || 'Cập nhật thanh toán trực tiếp thất bại'
+    alert(errorMsg)
   } finally {
     setSendingPayment(false)
   }
@@ -413,14 +390,15 @@ return (
             <th>SĐT</th>
             <th>Ngày đăng ký</th>
             <th>Trạng thái</th>
+            <th>TT Thanh toán</th>
             <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
           {loading ? (
-            <tr><td className="spr-loading" colSpan="7">Đang tải...</td></tr>
+            <tr><td className="spr-loading" colSpan="8">Đang tải...</td></tr>
           ) : items.length === 0 ? (
-            <tr><td className="spr-empty" colSpan="7">Không có dữ liệu</td></tr>
+            <tr><td className="spr-empty" colSpan="8">Không có dữ liệu</td></tr>
           ) : (
             items.map((r, idx) => {
               const rid = r?.id ?? r?.registrationRequestId ?? r?.requestId
@@ -440,12 +418,28 @@ return (
                     </span>
                   </td>
                   <td>
+                    {(() => {
+                      // Kiểm tra cả camelCase và PascalCase
+                      const paymentStatus = r.paymentStatus || r.PaymentStatus || '';
+                      const statusLower = paymentStatus.toLowerCase();
+                      return (
+                        <span className={`spr-status spr-payment-${statusLower}`}>
+                          {
+                            paymentStatus === 'Unpaid' ? 'Chưa thanh toán' :
+                            paymentStatus === 'DirectPaid' ? 'TT trực tiếp' :
+                            paymentStatus === 'VnPayPaid' ? 'TT VNPay' :
+                            paymentStatus === 'Refunded' ? 'Đã hoàn tiền' :
+                            paymentStatus || 'N/A'
+                          }
+                        </span>
+                      )
+                    })()}
+                  </td>
+                  <td>
                     <div className="spr-actions-cell">
-                      {/* 🔹 Các nút hành động */}
-                      <button className="spr-btn" onClick={() => openDetail(rid)}>Xem</button>
-                      <button className="spr-btn spr-btn-success" onClick={() => openNote(rid)}>Ghi chú</button>
-                      <button className="spr-btn" onClick={async () => { await handleUpdateStatusFor(rid, 'Contacted') }}>Kết nối</button>
-                      <button className="spr-btn" onClick={async () => { await handleUpdateStatusFor(rid, 'Examined') }}>Đã đến khám</button>
+                      {/* 🔹 Các nút hành động - Màu sắc phân biệt rõ ràng */}
+                      <button className="spr-btn spr-btn-info" onClick={() => openDetail(rid)}>Xem</button>
+                      <button className="spr-btn spr-btn-primary" onClick={async () => { await handleUpdateStatusFor(rid, 'Contacted') }}>Kết nối</button>
                       <button className="spr-btn spr-btn-danger" onClick={async () => {
                         if (window.confirm('Đánh dấu không hợp lệ?')) {
                           await putRegistrationInvalid(rid, tokens)
@@ -453,7 +447,9 @@ return (
                         }
                       }}>Không hợp lệ</button>
                       <button className="spr-btn spr-btn-warning" onClick={() => openExamSelection(r, false)}>Gửi Thanh Toán</button>
-                      <button className="spr-btn spr-btn-warning" onClick={() => openExamSelection(r, true)}>Thanh Toán Trực Tiếp</button>
+                      <button className="spr-btn spr-btn-orange" onClick={() => openExamSelection(r, true)}>Thanh Toán Trực Tiếp</button>
+                      <button className="spr-btn spr-btn-success" onClick={() => openExamSelection(r, true)}>Xuất Hóa Đơn</button>
+                      <button className="spr-btn spr-btn-purple" onClick={async () => { await handleUpdateStatusFor(rid, 'Examined') }}>Đã khám</button>
                     </div>
                   </td>
                 </tr>
@@ -477,12 +473,11 @@ return (
       </div>
     </div>
 
-    {/* 📋 Modal chi tiết */}
+    {/* 📋 Modal chi tiết và ghi chú */}
     <DetailModal
       open={open}
       onClose={() => setOpen(false)}
       registration={detail}
-      mode={modalMode}
       onSaveNoteRef={noteBuffer}
       onSaveNoteHandler={handleSaveNote}
       onUpdateStatus={handleUpdateStatus}

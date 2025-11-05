@@ -19,6 +19,16 @@ import {
   approveAppointment,
   deleteAppointment,
 } from './appointment.api';
+import {
+  getExaminedPatients,
+  getPrescriptions,
+  getPrescriptionById,
+  createPrescription,
+  updatePrescription,
+  deletePrescription,
+  sendPrescriptionEmail,
+  markRegistrationExamined,
+} from './prescription.api';
 
 export { namedApiClient as apiClient };
 
@@ -51,12 +61,24 @@ export const appointments = {
   deleteAppointment,
 };
 
+export const prescriptions = {
+  getExaminedPatients,
+  getPrescriptions,
+  getPrescriptionById,
+  createPrescription,
+  updatePrescription,
+  deletePrescription,
+  sendPrescriptionEmail,
+  markRegistrationExamined,
+};
+
 const services = {
   apiClient,
   accounts,
   exams,
   payments,
   appointments,
+  prescriptions,
 };
 
 export default services;

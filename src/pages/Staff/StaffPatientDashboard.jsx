@@ -7,6 +7,7 @@ import StaffPatientRegistrations from './StaffPatientRegistrations'
 import StaffPatientCreate from './StaffPatientCreate'
 import StaffAppointments from './StaffAppointments'
 import StaffBookedAppointments from './StaffBookedAppointments'
+import StaffPrescriptionManagement from './StaffPrescriptionManagement'
 
 function StaffPatientDashboard() {
   const { logout, tokens } = useContext(AuthContext)
@@ -43,6 +44,7 @@ function StaffPatientDashboard() {
             { key: 'patient-registrations', label: 'Đăng ký khám', icon: '📝' },
             { key: 'appointments', label: 'Đặt Lịch Khám', icon: '📅' },
             { key: 'booked-appointments', label: 'Lịch hẹn đã đặt', icon: '✅' },
+            { key: 'prescriptions', label: 'Kê đơn thuốc', icon: '💊' },
             { key: 'patient-accounts', label: 'Quản lý tài khoản bệnh nhân', icon: '👩‍⚕️' },
             { key: 'create-patient', label: 'Tạo bệnh nhân', icon: '➕' },
           ].map((i) => (
@@ -73,6 +75,9 @@ function StaffPatientDashboard() {
         )}
         {active === 'booked-appointments' && (
           <StaffBookedAppointments />
+        )}
+        {active === 'prescriptions' && (
+          <StaffPrescriptionManagement />
         )}
         {active === 'patient-accounts' && (
           <StaffPatientManagement />

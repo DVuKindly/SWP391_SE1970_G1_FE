@@ -218,3 +218,10 @@ export async function getPatientAppointments(patientId, tokens) {
   const json = await apiClient.get(`/api/staff/patients/${patientId}/appointments`, { tokens });
   return Array.isArray(json) ? json : (json?.data || []);
 }
+
+export async function markExam(registrationId, examId, tokens) {
+  const json = await apiClient.post(`/api/staff-patient/registrations/${registrationId}/exams/${examId}/mark`, {
+    tokens,
+  });
+  return json;
+}

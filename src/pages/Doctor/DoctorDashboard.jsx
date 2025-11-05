@@ -4,6 +4,7 @@ import './DoctorDashboard.css';
 import { useNavigate } from 'react-router-dom';
 import PatientManager from './PatientManager/PatientManager';
 import DoctorProfile from './DoctorProfile';
+import PrescriptionManagement from './PrescriptionManagement';
 
 function DoctorDashboard() {
   const { logout, tokens } = useContext(AuthContext);
@@ -39,6 +40,7 @@ function DoctorDashboard() {
             { key: 'dashboard', label: 'Bảng điều khiển', icon: '🏠' },
             { key: 'appointments', label: 'Lịch hẹn', icon: '📅' },
             { key: 'patients', label: 'Bệnh nhân', icon: '👥' },
+            { key: 'prescriptions', label: 'Kê đơn thuốc', icon: '💊' },
             { key: 'profile', label: 'Hồ sơ', icon: '👤' },
           ].map((i) => (
             <button
@@ -130,6 +132,8 @@ function DoctorDashboard() {
         )}
 
         {active === 'patients' && <PatientManager />}
+
+        {active === 'prescriptions' && <PrescriptionManagement />}
 
         {active === 'profile' && <DoctorProfile tokens={tokens} />}
       </main>

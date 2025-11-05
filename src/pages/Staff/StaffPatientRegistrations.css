@@ -47,12 +47,20 @@
 }
 .spr-btn-secondary { background: #6b7280; }
 .spr-btn-secondary:hover:not(:disabled) { background: #4b5563; }
+.spr-btn-info { background: #0ea5e9; }
+.spr-btn-info:hover:not(:disabled) { background: #0284c7; }
+.spr-btn-primary { background: #2563eb; }
+.spr-btn-primary:hover:not(:disabled) { background: #1d4ed8; }
 .spr-btn-warning { background: #f59e0b; }
 .spr-btn-warning:hover:not(:disabled) { background: #d97706; }
+.spr-btn-orange { background: #f97316; }
+.spr-btn-orange:hover:not(:disabled) { background: #ea580c; }
 .spr-btn-danger { background: #dc2626; }
 .spr-btn-danger:hover:not(:disabled) { background: #b91c1c; }
 .spr-btn-success { background: #16a34a; }
 .spr-btn-success:hover:not(:disabled) { background: #15803d; }
+.spr-btn-purple { background: #9333ea; }
+.spr-btn-purple:hover:not(:disabled) { background: #7e22ce; }
 
 .spr-filters { 
   display: flex; 
@@ -117,7 +125,8 @@
 .spr-table th:nth-child(4), .spr-table td:nth-child(4) { width: 110px; } /* SĐT */
 .spr-table th:nth-child(5), .spr-table td:nth-child(5) { width: 150px; } /* Ngày đăng ký */
 .spr-table th:nth-child(6), .spr-table td:nth-child(6) { width: 120px; } /* Trạng thái */
-.spr-table th:nth-child(7), .spr-table td:nth-child(7) { width: auto; min-width: 400px; } /* Thao tác */
+.spr-table th:nth-child(7), .spr-table td:nth-child(7) { width: 130px; } /* TT Thanh toán */
+.spr-table th:nth-child(8), .spr-table td:nth-child(8) { width: auto; min-width: 400px; } /* Thao tác */
 
 .spr-loading, .spr-empty { text-align: center; padding: 40px; color: #6b7280; font-style: italic; }
 .spr-actions-cell { 
@@ -149,6 +158,13 @@
 .spr-status-scheduled { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
 .spr-status-contacted { background: #e9d5ff; color: #6b21a8; border: 1px solid #c084fc; }
 .spr-status-direct_payment { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+.spr-status-examined { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+
+/* Payment Status Styles - Từ Backend Enum */
+.spr-payment-unpaid { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; } /* Chưa thanh toán */
+.spr-payment-directpaid { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; } /* Thanh toán trực tiếp */
+.spr-payment-vnpaypaid { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; } /* Thanh toán VNPay */
+.spr-payment-refunded { background: #e0e7ff; color: #3730a3; border: 1px solid #a5b4fc; } /* Đã hoàn tiền */
 
 .spr-pagination { 
   display: flex; 
