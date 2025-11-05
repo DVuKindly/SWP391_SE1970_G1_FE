@@ -27,3 +27,12 @@ export async function directPayment(userId, tokens) {
   });
   return json;
 }
+
+// Create invoice for direct payment
+export async function createInvoiceForDirectPayment(requestId, tokens) {
+  const json = await apiClient.post('/api/payments/create-invoice-for-direct-payment', {
+    tokens,
+    query: { requestId }
+  });
+  return json;
+}

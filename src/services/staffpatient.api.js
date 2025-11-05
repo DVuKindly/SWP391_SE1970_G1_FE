@@ -225,3 +225,11 @@ export async function markExam(registrationId, examId, tokens) {
   });
   return json;
 }
+
+// Mark registration as examined
+export async function markAsExamined(registrationId, tokens) {
+  const json = await apiClient.post(`/api/staff-patient/${registrationId}/mark-examined`, {
+    tokens
+  });
+  return json;
+}

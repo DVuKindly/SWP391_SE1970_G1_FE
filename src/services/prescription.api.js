@@ -34,7 +34,7 @@ export async function createPrescription(payload, staffId, tokens) {
     query: { staffId },
     body: payload
   });
-  return json?.data || json;
+  return json;
 }
 
 // Update prescription

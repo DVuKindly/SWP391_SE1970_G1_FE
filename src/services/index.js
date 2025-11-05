@@ -29,6 +29,14 @@ import {
   sendPrescriptionEmail,
   markRegistrationExamined,
 } from './prescription.api';
+import {
+  getPatientList,
+  getPaymentOverview,
+  getPayments,
+  getRevenueByMonth,
+  getRevenueByYear,
+  exportRevenueExcel,
+} from './revenue.api';
 
 export { namedApiClient as apiClient };
 
@@ -72,6 +80,15 @@ export const prescriptions = {
   markRegistrationExamined,
 };
 
+export const revenue = {
+  getPatientList,
+  getPaymentOverview,
+  getPayments,
+  getRevenueByMonth,
+  getRevenueByYear,
+  exportRevenueExcel,
+};
+
 const services = {
   apiClient,
   accounts,
@@ -79,6 +96,7 @@ const services = {
   payments,
   appointments,
   prescriptions,
+  revenue,
 };
 
 export default services;

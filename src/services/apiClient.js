@@ -60,7 +60,18 @@ async function request(method, url, { tokens, headers, query, body } = {}) {
     const json = parsed.body;
     if (json && typeof json === 'object') {
       if (Object.prototype.hasOwnProperty.call(json, 'success')) {
-        if (!json.success) throw new Error(json?.message || 'Request failed');
+        if (!json.success) {
+          const error = new Error(json?.message || 'Request failed');
+          error.response = { data: json };
+          throw error;
+        }
+        // Nếu có message, return object chứa cả data và message
+        if (json.message) {
+          return {
+            data: json.data,
+            message: json.message
+          };
+        }
         return json.data !== undefined ? json.data : json;
       }
     }

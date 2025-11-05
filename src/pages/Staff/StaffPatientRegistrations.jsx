@@ -8,9 +8,10 @@ import {
   postRegistrationNote,
   putRegistrationInvalid,
   setDirectPayment,
+  markAsExamined,
 } from '../../services/staffpatient.api'
 import { getExams } from '../../services/exam.api'
-import { createPaymentForRegistration } from '../../services/payment.api'
+import { createPaymentForRegistration, createInvoiceForDirectPayment } from '../../services/payment.api'
 import './StaffPatientRegistrations.css'
 
 /* ============================================
@@ -101,7 +102,7 @@ function DetailModal({ open, onClose, registration, onSaveNoteRef, onSaveNoteHan
  * 🧾 Component chính: StaffPatientRegistrations
  * ============================================ */
 function StaffPatientRegistrations() {
-  const { tokens } = useContext(AuthContext)
+  const { tokens, user } = useContext(AuthContext)
 
   // ⚙️ State quản lý
   const [items, setItems] = useState([])
@@ -187,12 +188,12 @@ function StaffPatientRegistrations() {
       const res = await putRegistrationStatus(detail.id, { status: newStatus }, tokens)
       await load()
       setDetail((d) => d ? { ...d, status: newStatus } : d)
-      const message = res?.message || 'Cập nhật trạng thái thành công'
-      alert(message)
+      const message = res?.message || res?.data?.message
+      if (message) alert(message)
     } catch (e) {
       console.error('Error updating status:', e)
-      const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
-      alert(errorMsg)
+      const errorMsg = e?.response?.data?.message || e?.message
+      if (errorMsg) alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -205,12 +206,12 @@ function StaffPatientRegistrations() {
       const res = await putRegistrationStatus(id, { status: newStatus }, tokens)
       await load()
       if (detail?.id === id) setDetail((d) => d ? { ...d, status: newStatus } : d)
-      const message = res?.message || 'Cập nhật trạng thái thành công'
-      alert(message)
+      const message = res?.message || res?.data?.message
+      if (message) alert(message)
     } catch (e) {
       console.error(e)
-      const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
-      alert(errorMsg)
+      const errorMsg = e?.response?.data?.message || e?.message
+      if (errorMsg) alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -220,18 +221,18 @@ function StaffPatientRegistrations() {
   const handleSaveNote = async () => {
     if (!detail?.id) return
     const note = noteBuffer.current ?? ''
-    if (!note.trim()) { alert('Vui lòng nhập ghi chú'); return }
+    if (!note.trim()) return
     setSaving(true)
     try {
       const res = await postRegistrationNote(detail.id, { note }, tokens)
       setDetail((d) => d ? { ...d, note } : d) // cập nhật local
       await load()
-      const message = res?.message || 'Lưu ghi chú thành công'
-      alert(message)
+      const message = res?.message || res?.data?.message
+      if (message) alert(message)
       setOpen(false)
     } catch (e) {
-      const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
-      alert(errorMsg)
+      const errorMsg = e?.response?.data?.message || e?.message
+      if (errorMsg) alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -247,11 +248,58 @@ const handleMarkInvalid = async () => {
     const res = await putRegistrationInvalid(detail.id, tokens)
     await load()
     setDetail((d) => d ? { ...d, status: 'Invalid' } : d)
-    const message = res?.message || 'Đã đánh dấu không hợp lệ'
-    alert(message)
+    const message = res?.message || res?.data?.message
+    if (message) alert(message)
   } catch (e) {
-    const errorMsg = e?.response?.data?.message || e?.message || 'Có lỗi xảy ra'
-    alert(errorMsg)
+    const errorMsg = e?.response?.data?.message || e?.message
+    if (errorMsg) alert(errorMsg)
+  } finally {
+    setSaving(false)
+  }
+}
+
+// 🏥 Đánh dấu đã khám
+const handleMarkAsExamined = async (registrationId) => {
+  if (!window.confirm('Xác nhận bệnh nhân đã đến khám?')) return
+  console.log('🔍 Mark as examined - registrationId:', registrationId)
+  setSaving(true)
+  try {
+    const res = await markAsExamined(registrationId, tokens)
+    await load()
+    const message = res?.message || res?.data?.message
+    if (message) alert(message)
+  } catch (e) {
+    console.error('❌ Mark examined error:', e)
+    const errorMsg = e?.response?.data?.message || e?.message
+    if (errorMsg) alert(errorMsg)
+  } finally {
+    setSaving(false)
+  }
+}
+
+// 🧾 Xuất hóa đơn cho đăng ký đã đặt lịch nhưng chưa thanh toán
+const handleCreateInvoice = async (registration) => {
+  const rid = registration?.id ?? registration?.registrationRequestId ?? registration?.requestId
+  const status = registration.status
+  const paymentStatus = registration.paymentStatus || registration.PaymentStatus
+  
+  // Kiểm tra điều kiện: Status = Scheduled và PaymentStatus = Unpaid
+  if (status !== 'Scheduled' || paymentStatus !== 'Unpaid') {
+    return
+  }
+  
+  if (!window.confirm('Xác nhận xuất hóa đơn và đánh dấu đã thanh toán trực tiếp?')) return
+  
+  setSaving(true)
+  try {
+    const res = await createInvoiceForDirectPayment(rid, tokens)
+    await load()
+    const message = res?.message || res?.data?.message
+    if (message) alert(message)
+  } catch (e) {
+    console.error('❌ Create invoice error:', e)
+    const errorMsg = e?.response?.data?.message || e?.message
+    if (errorMsg) alert(errorMsg)
   } finally {
     setSaving(false)
   }
@@ -267,8 +315,8 @@ const openExamSelection = async (registration, isDirect = false) => {
     const examsData = await getExams(tokens)
     setExams(examsData)
   } catch (e) {
-    const errorMsg = e?.response?.data?.message || e?.message || 'Không thể tải danh sách gói khám'
-    alert(errorMsg)
+    const errorMsg = e?.response?.data?.message || e?.message
+    if (errorMsg) alert(errorMsg)
     setShowExamModal(false)
   } finally {
     setLoadingExams(false)
@@ -281,7 +329,6 @@ const handleSendPayment = async (exam) => {
 
   // Kiểm tra điều kiện
   if (selectedRegistration.status !== 'Contacted') {
-    alert('Chỉ có thể gửi thanh toán khi đăng ký đã ở trạng thái "Contacted".')
     return
   }
 
@@ -290,20 +337,19 @@ const handleSendPayment = async (exam) => {
     const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
     const examId = exam.id || exam.examId
     if (!registrationId || !examId) {
-      alert('Thiếu thông tin đăng ký hoặc gói khám')
       return
     }
 
     const result = await createPaymentForRegistration(registrationId, examId, tokens)
-    const message = result?.message || 'Gửi yêu cầu thanh toán thành công!'
-    alert(message)
+    const message = result?.message || result?.data?.message
+    if (message) alert(message)
 
     setShowExamModal(false)
     setSelectedRegistration(null)
     await load()
   } catch (e) {
-    const errorMsg = e?.response?.data?.message || e?.message || 'Gửi yêu cầu thanh toán thất bại'
-    alert(errorMsg)
+    const errorMsg = e?.response?.data?.message || e?.message
+    if (errorMsg) alert(errorMsg)
   } finally {
     setSendingPayment(false)
   }
@@ -314,7 +360,6 @@ const handleDirectPayment = async (exam) => {
   if (!selectedRegistration) return
 
   if (selectedRegistration.status !== 'Contacted') {
-    alert('Chỉ có thể thanh toán trực tiếp khi đăng ký ở trạng thái "Contacted".')
     return
   }
 
@@ -323,20 +368,19 @@ const handleDirectPayment = async (exam) => {
     const registrationId = selectedRegistration.id || selectedRegistration.registrationRequestId || selectedRegistration.requestId
     const examId = exam.id || exam.examId
     if (!registrationId || !examId) {
-      alert('Thiếu thông tin đăng ký hoặc gói khám')
       return
     }
 
     const result = await setDirectPayment(registrationId, examId, tokens)
-    const message = result?.message || 'Đã chuyển sang thanh toán trực tiếp thành công!'
-    alert(message)
+    const message = result?.message || result?.data?.message
+    if (message) alert(message)
 
     setShowExamModal(false)
     setSelectedRegistration(null)
     await load()
   } catch (e) {
-    const errorMsg = e?.response?.data?.message || e?.message || 'Cập nhật thanh toán trực tiếp thất bại'
-    alert(errorMsg)
+    const errorMsg = e?.response?.data?.message || e?.message
+    if (errorMsg) alert(errorMsg)
   } finally {
     setSendingPayment(false)
   }
@@ -448,8 +492,8 @@ return (
                       }}>Không hợp lệ</button>
                       <button className="spr-btn spr-btn-warning" onClick={() => openExamSelection(r, false)}>Gửi Thanh Toán</button>
                       <button className="spr-btn spr-btn-orange" onClick={() => openExamSelection(r, true)}>Thanh Toán Trực Tiếp</button>
-                      <button className="spr-btn spr-btn-success" onClick={() => openExamSelection(r, true)}>Xuất Hóa Đơn</button>
-                      <button className="spr-btn spr-btn-purple" onClick={async () => { await handleUpdateStatusFor(rid, 'Examined') }}>Đã khám</button>
+                      <button className="spr-btn spr-btn-success" onClick={() => handleCreateInvoice(r)}>Xuất Hóa Đơn</button>
+                      <button className="spr-btn spr-btn-purple" onClick={async () => { await handleMarkAsExamined(rid) }}>Đã khám</button>
                     </div>
                   </td>
                 </tr>

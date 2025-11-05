@@ -140,16 +140,18 @@ function PrescriptionManagement() {
 
       const result = await createPrescription(payload, staffId, tokens)
       
-      const message = result?.message || result?.data?.message || 'Kê đơn thuốc thành công!'
-      alert(message)
+      console.log('✅ Success result:', result)
+      const message = result?.message || result?.data?.message
+      if (message) alert(message)
       setShowPrescriptionModal(false)
       setSelectedPatient(null)
       loadExaminedPatients()
       loadMyPrescriptions()
     } catch (e) {
-      console.error('Error creating prescription:', e)
-      const errorMsg = e?.response?.data?.message || e?.message || 'Không thể tạo đơn thuốc'
-      alert(errorMsg)
+      console.error('❌ Error creating prescription:', e)
+      console.error('❌ Error response:', e?.response)
+      const errorMsg = e?.response?.data?.message || e?.message
+      if (errorMsg) alert(errorMsg)
     } finally {
       setSaving(false)
     }
@@ -161,8 +163,8 @@ function PrescriptionManagement() {
       const detail = await getPrescriptionById(prescriptionId, tokens)
       alert(JSON.stringify(detail, null, 2)) // Simple display, you can create a modal
     } catch (e) {
-      const errorMsg = e?.response?.data?.message || e?.message || 'Không thể xem chi tiết đơn thuốc'
-      alert(errorMsg)
+      const errorMsg = e?.response?.data?.message || e?.message
+      if (errorMsg) alert(errorMsg)
     }
   }
 
@@ -171,11 +173,11 @@ function PrescriptionManagement() {
     if (!window.confirm('Gửi email đơn thuốc cho bệnh nhân?')) return
     try {
       const result = await sendPrescriptionEmail(prescriptionId, tokens)
-      const message = result?.message || result?.data?.message || 'Đã gửi email thành công!'
-      alert(message)
+      const message = result?.message || result?.data?.message
+      if (message) alert(message)
     } catch (e) {
-      const errorMsg = e?.response?.data?.message || e?.message || 'Không thể gửi email'
-      alert(errorMsg)
+      const errorMsg = e?.response?.data?.message || e?.message
+      if (errorMsg) alert(errorMsg)
     }
   }
 
