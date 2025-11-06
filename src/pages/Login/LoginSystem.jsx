@@ -44,6 +44,10 @@ const LoginSystem = () => {
     setIsSubmitting(true)
     try {
       const result = await loginEmployee({ email, password })
+      console.log('🔍 Login result:', result)
+      console.log('🔍 User roles from server:', result?.user?.roles)
+      console.log('🔍 Selected role:', role)
+      
       const serverRoles = result?.user?.roles || []
       if (!serverRoles.includes(role)) {
         await Promise.resolve(logout())

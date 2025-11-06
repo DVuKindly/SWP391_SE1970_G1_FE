@@ -11,7 +11,7 @@ import {
 import './RevenueDashboard.css'
 
 /**
- * 📊 Revenue Dashboard - Màn hình quản lý doanh thu
+ * Revenue Dashboard - Màn hình quản lý doanh thu
  * 
  * Chức năng chính:
  * - Hiển thị tổng quan thanh toán (tổng doanh thu, số lượng thanh toán, v.v.)
@@ -24,89 +24,89 @@ import './RevenueDashboard.css'
 function RevenueDashboard() {
   const { tokens } = useContext(AuthContext)
 
-  // ⚙️ State quản lý data
+  // State quản lý data
   const [overview, setOverview] = useState({})
   const [payments, setPayments] = useState([])
   const [patients, setPatients] = useState([])
   const [revenueByMonth, setRevenueByMonth] = useState([])
   const [revenueByYear, setRevenueByYear] = useState([])
   
-  // ⚙️ State UI
+  // State UI
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('overview') // overview | payments | patients
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [exporting, setExporting] = useState(false)
 
-  // 🔄 Load dữ liệu tổng quan khi component mount
+  // Load dữ liệu tổng quan khi component mount
   useEffect(() => {
-    console.log('🚀 Revenue Dashboard mounted, loading data...')
-    console.log('🔑 Tokens:', tokens ? 'Available' : 'Missing')
+    console.log(' Revenue Dashboard mounted, loading data...')
+    console.log(' Tokens:', tokens ? 'Available' : 'Missing')
     loadOverview()
     loadPayments()
     loadPatients()
     loadRevenueByYear()
   }, [])
 
-  // 🔄 Load doanh thu theo tháng khi đổi năm
+  // Load doanh thu theo tháng khi đổi năm
   useEffect(() => {
     loadRevenueByMonth(selectedYear)
   }, [selectedYear])
 
   /**
-   * 📥 Load tổng quan thanh toán
+   * Load tổng quan thanh toán
    */
   const loadOverview = async () => {
     setLoading(true)
     try {
-      console.log('🔄 Calling getPaymentOverview with tokens:', tokens ? 'Present' : 'Missing')
+      console.log('Calling getPaymentOverview with tokens:', tokens ? 'Present' : 'Missing')
       const response = await getPaymentOverview(tokens)
-      console.log('📊 Raw Payment Overview response:', response)
-      console.log('📊 Type:', typeof response, 'IsArray:', Array.isArray(response))
-      console.log('📊 Keys:', response ? Object.keys(response) : 'null')
+      console.log('Raw Payment Overview response:', response)
+      console.log('Type:', typeof response, 'IsArray:', Array.isArray(response))
+      console.log('Keys:', response ? Object.keys(response) : 'null')
       
       // Backend trả về { success, message, data: {...} }
       // apiClient có thể đã unwrap hoặc chưa
       let data = response
       if (response && response.data) {
-        console.log('📊 Found nested data property, unwrapping...')
+        console.log('Found nested data property, unwrapping...')
         data = response.data
       }
       
-      console.log('📊 Final data to set:', data)
+      console.log('Final data to set:', data)
       setOverview(data || {})
-      console.log('✅ Overview state updated with:', data)
+      console.log('Overview state updated with:', data)
     } catch (error) {
-      console.error('❌ Error loading payment overview:', error)
-      console.error('❌ Error details:', error.message, error.response)
+      console.error('Error loading payment overview:', error)
+      console.error('Error details:', error.message, error.response)
     } finally {
       setLoading(false)
     }
   }
 
   /**
-   * 📥 Load danh sách thanh toán
+   *  Load danh sách thanh toán
    */
   const loadPayments = async () => {
     try {
       const response = await getPayments(tokens)
-      console.log('💳 Raw Payments response:', response)
+      console.log(' Raw Payments response:', response)
       const data = response?.data || response
-      console.log('💳 Payments data:', data)
+      console.log('Payments data:', data)
       setPayments(Array.isArray(data) ? data : [])
     } catch (error) {
-      console.error('❌ Error loading payments:', error)
+      console.error(' Error loading payments:', error)
     }
   }
 
   /**
-   * 📥 Load danh sách bệnh nhân
+   *  Load danh sách bệnh nhân
    */
   const loadPatients = async () => {
     try {
       const response = await getPatientList(tokens)
-      console.log('👥 Raw Patients response:', response)
+      console.log(' Raw Patients response:', response)
       const data = response?.data || response
-      console.log('👥 Patients data:', data)
+      console.log(' Patients data:', data)
       
       // Backend trả về { TotalPatients, PaidTotal, UnpaidTotal, Patients }
       let rawList = []
@@ -118,7 +118,7 @@ function RevenueDashboard() {
         rawList = data
       }
 
-      console.log('👥 Raw patient list:', rawList)
+      console.log('Raw patient list:', rawList)
 
       // Group theo email để tính số lần khám và tổng thanh toán
       const patientMap = new Map()
@@ -151,63 +151,65 @@ function RevenueDashboard() {
       
       // Convert Map to Array
       const groupedPatients = Array.from(patientMap.values())
-      console.log('👥 Grouped patients:', groupedPatients)
+      console.log('Grouped patients:', groupedPatients)
       
       setPatients(groupedPatients)
     } catch (error) {
-      console.error('❌ Error loading patient list:', error)
+      console.error('Error loading patient list:', error)
     }
   }
 
   /**
-   * 📥 Load doanh thu theo tháng
+   * Load doanh thu theo tháng
    */
   const loadRevenueByMonth = async (year) => {
     try {
       const response = await getRevenueByMonth(year, tokens)
-      console.log('📈 Raw Revenue by month response:', response)
+      console.log(' Raw Revenue by month response:', response)
       const data = response?.data || response
-      console.log('📈 Revenue by month data:', data)
+      console.log('Revenue by month data:', data)
       setRevenueByMonth(Array.isArray(data) ? data : [])
     } catch (error) {
-      console.error('❌ Error loading revenue by month:', error)
+      console.error('Error loading revenue by month:', error)
     }
   }
 
   /**
-   * 📥 Load doanh thu theo năm
+   * Load doanh thu theo năm
    */
   const loadRevenueByYear = async () => {
     try {
       const currentYear = new Date().getFullYear()
       const response = await getRevenueByYear(currentYear - 4, currentYear, tokens)
-      console.log('📊 Raw Revenue by year response:', response)
+      console.log('Raw Revenue by year response:', response)
       const data = response?.data || response
-      console.log('📊 Revenue by year data:', data)
+      console.log('Revenue by year data:', data)
       setRevenueByYear(Array.isArray(data) ? data : [])
     } catch (error) {
-      console.error('❌ Error loading revenue by year:', error)
+      console.error('Error loading revenue by year:', error)
     }
   }
 
   /**
-   * 📤 Export báo cáo Excel
+   * Export báo cáo Excel
    */
   const handleExportExcel = async () => {
     setExporting(true)
     try {
+      console.log(' Starting export with year:', selectedYear)
       await exportRevenueExcel({ year: selectedYear }, tokens)
       alert('Xuất báo cáo thành công!')
     } catch (error) {
       console.error('Error exporting Excel:', error)
-      alert('Không thể xuất báo cáo: ' + (error?.response?.data?.message || error?.message))
+      const errorMessage = error?.message || error?.response?.data?.message || 'Không thể xuất báo cáo'
+      alert('Lỗi: ' + errorMessage)
     } finally {
       setExporting(false)
     }
   }
 
   /**
-   * 💰 Format tiền VND
+   * Format tiền VND
    */
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('vi-VN', { 
@@ -221,11 +223,30 @@ function RevenueDashboard() {
    */
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleString('vi-VN')
+    
+    try {
+      const date = new Date(dateString)
+      // Check if date is valid
+      if (isNaN(date.getTime())) return 'N/A'
+      
+      // Check if date is not default/min date (1970-01-01 or 0001-01-01)
+      if (date.getFullYear() < 2000) return 'N/A'
+      
+      return date.toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error)
+      return 'N/A'
+    }
   }
 
   /**
-   * 📊 Render biểu đồ đơn giản (bar chart)
+   *  Render biểu đồ đơn giản (bar chart)
    */
   const renderSimpleChart = (data) => {
     if (!data || data.length === 0) {
@@ -266,7 +287,7 @@ function RevenueDashboard() {
 
   return (
     <div className="rd-container">
-      {/* 🎯 Header với Export button */}
+      {/* Header với Export button */}
       <div className="rd-header">
         <h2>📊 Quản Lý Doanh Thu</h2>
         <button 
@@ -278,7 +299,7 @@ function RevenueDashboard() {
         </button>
       </div>
 
-      {/* 📑 Tab Navigation */}
+      {/* Tab Navigation */}
       <div className="rd-tabs">
         <button 
           className={`rd-tab ${activeTab === 'overview' ? 'active' : ''}`}
@@ -300,7 +321,7 @@ function RevenueDashboard() {
         </button>
       </div>
 
-      {/* 📊 Overview Tab */}
+      {/* Overview Tab */}
       {activeTab === 'overview' && (
         <div className="rd-content">
           {loading ? (
@@ -309,7 +330,7 @@ function RevenueDashboard() {
             <div className="rd-loading">Không có dữ liệu tổng quan</div>
           ) : (
             <>
-              {/* 💰 Cards tổng quan */}
+              {/* Cards tổng quan */}
               <div className="rd-stats-grid">
                 <div className="rd-stat-card">
                   <div className="rd-stat-icon">💰</div>
@@ -352,7 +373,7 @@ function RevenueDashboard() {
                 </div>
               </div>
 
-              {/* 📊 Biểu đồ doanh thu theo tháng */}
+              {/* Biểu đồ doanh thu theo tháng */}
               <div className="rd-chart-section">
                 <div className="rd-chart-header">
                   <h3>📈 Doanh Thu Theo Tháng</h3>
@@ -369,7 +390,7 @@ function RevenueDashboard() {
                 {renderSimpleChart(revenueByMonth)}
               </div>
 
-              {/* 📊 Biểu đồ doanh thu theo năm */}
+              {/* Biểu đồ doanh thu theo năm */}
               <div className="rd-chart-section">
                 <h3>📈 Doanh Thu Theo Năm</h3>
                 {renderSimpleChart(revenueByYear)}
@@ -379,7 +400,7 @@ function RevenueDashboard() {
         </div>
       )}
 
-      {/* 💳 Payments Tab */}
+      {/* Payments Tab */}
       {activeTab === 'payments' && (
         <div className="rd-content">
           <div className="rd-table-container">
@@ -428,7 +449,7 @@ function RevenueDashboard() {
         </div>
       )}
 
-      {/* 👥 Patients Tab */}
+      {/* Patients Tab */}
       {activeTab === 'patients' && (
         <div className="rd-content">
           <div className="rd-table-container">

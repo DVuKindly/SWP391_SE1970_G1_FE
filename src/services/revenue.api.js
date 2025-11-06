@@ -1,7 +1,7 @@
 import apiClient from './apiClient'
 
 /**
- * 📊 API Service cho Revenue Management
+ * API Service cho Revenue Management
  * Dựa trên các endpoint từ backend:
  * - GET /api/revenue/patient-list
  * - GET /api/revenue/payment-overview
@@ -87,33 +87,74 @@ export const getRevenueByYear = async (fromYear, toYear, tokens) => {
  * @returns {Promise} - File Excel download
  */
 export const exportRevenueExcel = async (params, tokens) => {
-  // Gọi API với fetch trực tiếp để xử lý blob
-  const queryParams = new URLSearchParams()
-  if (params.year) queryParams.append('year', params.year)
-  if (params.isPaid !== undefined) queryParams.append('isPaid', params.isPaid)
-  
-  const response = await fetch(`/api/revenue/export-excel?${queryParams.toString()}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${tokens?.accessToken}`,
-    },
-  })
-  
-  if (!response.ok) {
-    throw new Error('Export failed')
+  try {
+    // Gọi API với fetch trực tiếp để xử lý blob
+    const queryParams = new URLSearchParams()
+    if (params.year) queryParams.append('year', params.year)
+    if (params.isPaid !== undefined) queryParams.append('isPaid', params.isPaid)
+    
+    const url = `/api/revenue/export-excel${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+    console.log('Exporting Excel from:', url)
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${tokens?.accessToken}`,
+      },
+    })
+    
+    console.log('Export response status:', response.status)
+    console.log('Export response headers:', Object.fromEntries(response.headers.entries()))
+    
+    if (!response.ok) {
+      // Thử parse error message từ JSON hoặc text
+      const contentType = response.headers.get('content-type') || ''
+      let errorMessage = `Export failed with status ${response.status}`
+      
+      try {
+        if (contentType.includes('application/json')) {
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorData.error || errorMessage
+        } else if (contentType.includes('text/plain') || contentType.includes('text/html')) {
+          const errorText = await response.text()
+          errorMessage = errorText || errorMessage
+        }
+      } catch (parseError) {
+        console.error('Could not parse error response:', parseError)
+      }
+      
+      console.error('Export failed:', errorMessage)
+      throw new Error(errorMessage)
+    }
+    
+    const blob = await response.blob()
+    console.log(' Blob size:', blob.size, 'bytes')
+    
+    // Tự động download file
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = downloadUrl
+    
+    // Lấy tên file từ header Content-Disposition nếu có
+    const contentDisposition = response.headers.get('content-disposition')
+    let fileName = `export-excel-year-${params.year || new Date().getFullYear()}.xlsx`
+    if (contentDisposition) {
+      const match = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (match && match[1]) {
+        fileName = match[1].replace(/['"]/g, '')
+      }
+    }
+    
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(downloadUrl)
+    
+    console.log('File downloaded successfully:', fileName)
+    return blob
+  } catch (error) {
+    console.error('Export Excel error:', error)
+    throw error
   }
-  
-  const blob = await response.blob()
-  
-  // Tự động download file
-  const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', `revenue_report_${new Date().toISOString().split('T')[0]}.xlsx`)
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  window.URL.revokeObjectURL(url)
-  
-  return blob
 }

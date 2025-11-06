@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       let serverMessage = ''
       try {
         const maybeJson = await res.clone().json()
+        console.error('❌ Login failed - Response:', maybeJson)
         serverMessage = maybeJson?.message || maybeJson?.error || ''
       } catch (_) {
         serverMessage = await res.text().catch(() => '')
@@ -57,12 +58,15 @@ export const AuthProvider = ({ children }) => {
       throw new Error(serverMessage || res.statusText || `Máy chủ lỗi (${res.status}).`)
     } else {
       envelope = await res.json()
+      console.log('✅ Login success - Response:', envelope)
     }
 
     if (!envelope?.success) {
+      console.error('❌ Login failed - envelope.success is false:', envelope)
       throw new Error(envelope?.message || 'Đăng nhập thất bại')
     }
     const data = envelope.data || {}
+    console.log('✅ Extracted data:', data)
 
     const nextTokens = {
       accessToken: data.accessToken,
