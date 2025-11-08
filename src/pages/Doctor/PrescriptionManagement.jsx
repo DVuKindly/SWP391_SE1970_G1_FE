@@ -26,9 +26,12 @@ function PrescriptionManagement() {
   const [saving, setSaving] = useState(false)
   const [myPrescriptions, setMyPrescriptions] = useState([])
   const [showMyPrescriptions, setShowMyPrescriptions] = useState(false)
+  const [viewingPrescription, setViewingPrescription] = useState(null)
+  const [showViewModal, setShowViewModal] = useState(false)
 
   // Load examined patients
   const loadExaminedPatients = async () => {
+    if (!tokens) return; // Don't load if no token
     setLoading(true)
     try {
       const data = await getExaminedPatients(keyword.trim(), tokens)
@@ -44,9 +47,14 @@ function PrescriptionManagement() {
 
   // Load my prescriptions
   const loadMyPrescriptions = async () => {
+    if (!tokens) return; // Don't load if no token
     try {
       const staffId = user?.staffId || user?.id
       const data = await getPrescriptions({ doctorId: staffId }, tokens)
+      console.log('📋 My prescriptions data:', data)
+      if (data && data.length > 0) {
+        console.log('📋 First prescription:', data[0])
+      }
       setMyPrescriptions(data)
     } catch (e) {
       console.error('Error loading prescriptions:', e)
@@ -55,15 +63,17 @@ function PrescriptionManagement() {
 
   // Search with debounce
   useEffect(() => {
+    if (!tokens) return; // Don't run if no token
     const timer = setTimeout(() => loadExaminedPatients(), 500)
     return () => clearTimeout(timer)
-  }, [keyword])
+  }, [keyword, tokens])
 
   // Initial load
   useEffect(() => {
+    if (!tokens) return; // Don't run if no token
     loadExaminedPatients()
     loadMyPrescriptions()
-  }, [])
+  }, [tokens])
 
   // Open prescription modal
   const openPrescriptionModal = (patient) => {
@@ -120,25 +130,24 @@ function PrescriptionManagement() {
 
     setSaving(true)
     try {
-      const staffId = user?.staffId || user?.id
-      const registrationId = selectedPatient.registrationRequestId || selectedPatient.requestId || selectedPatient.id
-      const patientId = selectedPatient.patientId || selectedPatient.accountId
+      // Backend cần appointmentId
+      const appointmentId = selectedPatient.appointmentId || selectedPatient.id
 
       const payload = {
-        registrationRequestId: registrationId,
-        patientId: patientId,
+        appointmentId: appointmentId,
         diagnosis: prescriptionData.diagnosis,
-        notes: prescriptionData.notes,
-        prescriptionDetails: validMedications.map(med => ({
+        note: prescriptionData.notes || null,
+        medicines: validMedications.map(med => ({
           medicineName: med.medicineName,
           dosage: med.dosage,
           frequency: med.frequency,
           duration: med.duration,
-          instructions: med.instructions
+          instruction: med.instructions || null
         }))
       }
 
-      const result = await createPrescription(payload, staffId, tokens)
+      console.log('📤 Sending payload:', payload)
+      const result = await createPrescription(payload, null, tokens)
       
       console.log('✅ Success result:', result)
       const message = result?.message || result?.data?.message
@@ -161,10 +170,13 @@ function PrescriptionManagement() {
   const viewPrescriptionDetail = async (prescriptionId) => {
     try {
       const detail = await getPrescriptionById(prescriptionId, tokens)
-      alert(JSON.stringify(detail, null, 2)) // Simple display, you can create a modal
+      console.log('📋 Prescription detail:', detail)
+      setViewingPrescription(detail)
+      setShowViewModal(true)
     } catch (e) {
-      const errorMsg = e?.response?.data?.message || e?.message
-      if (errorMsg) alert(errorMsg)
+      console.error('Error loading prescription:', e)
+      const errorMsg = e?.response?.data?.message || e?.message || 'Không thể tải chi tiết đơn thuốc'
+      alert(errorMsg)
     }
   }
 
@@ -216,102 +228,130 @@ function PrescriptionManagement() {
           </div>
 
           <div className="prescription-table-container">
-            <table className="prescription-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Họ tên</th>
-                  <th>Email</th>
-                  <th>Số điện thoại</th>
-                  <th>Ngày đăng ký</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td className="prescription-loading" colSpan="7">Đang tải...</td></tr>
-                ) : examinedPatients.length === 0 ? (
-                  <tr><td className="prescription-empty" colSpan="7">Không có bệnh nhân nào đã khám</td></tr>
-                ) : (
-                  examinedPatients.map((patient, idx) => (
-                    <tr key={patient.id || idx}>
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>⏳</div>
+                <div style={{ fontSize: 16, fontWeight: 500 }}>Đang tải...</div>
+              </div>
+            ) : examinedPatients.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>🔍</div>
+                <div style={{ fontSize: 16, fontWeight: 500 }}>Không có bệnh nhân nào đã khám</div>
+                <div style={{ fontSize: 14, marginTop: 8 }}>Danh sách bệnh nhân sẽ hiển thị ở đây</div>
+              </div>
+            ) : (
+              <table className="prescription-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Họ tên</th>
+                    <th>Email</th>
+                    <th>Tên cuộc khám</th>
+                    <th>Ngày khám</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {examinedPatients.map((patient, idx) => (
+                    <tr key={patient.appointmentId || patient.id || idx}>
                       <td>{idx + 1}</td>
-                      <td>{patient.fullName || patient.name || 'N/A'}</td>
+                      <td style={{ fontWeight: 500 }}>{patient.fullName || patient.name || 'N/A'}</td>
                       <td>{patient.email || 'N/A'}</td>
-                      <td>{patient.phone || patient.phoneNumber || 'N/A'}</td>
+                      <td>{patient.examName || 'N/A'}</td>
                       <td>
-                        {patient.createdAt || patient.registrationDate
-                          ? new Date(patient.createdAt || patient.registrationDate).toLocaleString('vi-VN')
+                        {patient.examinedAt
+                          ? new Date(patient.examinedAt).toLocaleString('vi-VN')
                           : 'N/A'}
                       </td>
                       <td>
                         <span className="prescription-status-examined">
-                          {patient.status || 'Examined'}
+                          Đã khám
                         </span>
                       </td>
                       <td>
                         <button 
                           className="prescription-btn prescription-btn-primary"
                           onClick={() => openPrescriptionModal(patient)}
+                          title="Kê đơn thuốc cho bệnh nhân"
                         >
-                          Kê đơn thuốc
+                          💊 Kê đơn thuốc
                         </button>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </>
       ) : (
         <>
           {/* My Prescriptions Section */}
+          <div className="prescription-filters">
+            <div style={{ color: '#6b7280', fontSize: 14 }}>
+              Tổng số đơn thuốc: <strong>{myPrescriptions.length}</strong>
+            </div>
+          </div>
+
           <div className="prescription-table-container">
-            <table className="prescription-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Bệnh nhân</th>
-                  <th>Chẩn đoán</th>
-                  <th>Ngày kê đơn</th>
-                  <th>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {myPrescriptions.length === 0 ? (
-                  <tr><td className="prescription-empty" colSpan="5">Chưa có đơn thuốc nào</td></tr>
-                ) : (
-                  myPrescriptions.map((prescription, idx) => (
+            {myPrescriptions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: '#6b7280' }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+                <div style={{ fontSize: 16, fontWeight: 500 }}>Chưa có đơn thuốc nào</div>
+                <div style={{ fontSize: 14, marginTop: 8 }}>Các đơn thuốc bạn kê sẽ hiển thị ở đây</div>
+              </div>
+            ) : (
+              <table className="prescription-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Bệnh nhân</th>
+                    <th>Chẩn đoán</th>
+                    <th>Ghi chú</th>
+                    <th>Số thuốc</th>
+                    <th>Ngày kê đơn</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myPrescriptions.map((prescription, idx) => (
                     <tr key={prescription.prescriptionId || idx}>
                       <td>{idx + 1}</td>
-                      <td>{prescription.patientName || 'N/A'}</td>
+                      <td style={{ fontWeight: 500 }}>{prescription.patientName || 'N/A'}</td>
                       <td>{prescription.diagnosis || 'N/A'}</td>
-                      <td>
-                        {prescription.createdDate || prescription.prescriptionDate
-                          ? new Date(prescription.createdDate || prescription.prescriptionDate).toLocaleString('vi-VN')
+                      <td>{prescription.note || '-'}</td>
+                      <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
+                        {prescription.medicines?.length || 0} loại
+                      </td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
+                        {prescription.createdAtUtc
+                          ? new Date(prescription.createdAtUtc).toLocaleString('vi-VN')
                           : 'N/A'}
                       </td>
                       <td>
-                        <button 
-                          className="prescription-btn prescription-btn-info"
-                          onClick={() => viewPrescriptionDetail(prescription.prescriptionId)}
-                        >
-                          Xem chi tiết
-                        </button>
-                        <button 
-                          className="prescription-btn prescription-btn-success"
-                          onClick={() => handleSendEmail(prescription.prescriptionId)}
-                        >
-                          Gửi Email
-                        </button>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', whiteSpace: 'nowrap' }}>
+                          <button 
+                            className="prescription-btn prescription-btn-info"
+                            onClick={() => viewPrescriptionDetail(prescription.prescriptionId)}
+                            title="Xem chi tiết đơn thuốc"
+                          >
+                            👁️ Xem
+                          </button>
+                          <button 
+                            className="prescription-btn prescription-btn-success"
+                            onClick={() => handleSendEmail(prescription.prescriptionId)}
+                            title="Gửi đơn thuốc qua email"
+                          >
+                            📧 Email
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </>
       )}
@@ -467,6 +507,91 @@ function PrescriptionManagement() {
                 disabled={saving}
               >
                 {saving ? 'Đang lưu...' : 'Lưu đơn thuốc'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Prescription Modal */}
+      {showViewModal && viewingPrescription && (
+        <div className="prescription-modal-overlay" onClick={() => setShowViewModal(false)}>
+          <div className="prescription-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 700 }}>
+            <div className="prescription-modal-header">
+              <h3>📋 Chi tiết đơn thuốc</h3>
+              <button 
+                className="prescription-modal-close"
+                onClick={() => setShowViewModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="prescription-modal-body">
+              {/* Patient & Prescription Info */}
+              <div className="patient-info-box" style={{ marginBottom: 20 }}>
+                <h4>Thông tin đơn thuốc</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12 }}>
+                  <div><strong>Bệnh nhân:</strong> {viewingPrescription.patientName || 'N/A'}</div>
+                  <div><strong>Ngày kê:</strong> {viewingPrescription.createdAtUtc ? new Date(viewingPrescription.createdAtUtc).toLocaleString('vi-VN') : 'N/A'}</div>
+                  <div style={{ gridColumn: '1 / -1' }}><strong>Chẩn đoán:</strong> {viewingPrescription.diagnosis || 'N/A'}</div>
+                  {viewingPrescription.note && (
+                    <div style={{ gridColumn: '1 / -1' }}><strong>Ghi chú:</strong> {viewingPrescription.note}</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Medicines List */}
+              <div>
+                <h4 style={{ marginBottom: 12 }}>Danh sách thuốc</h4>
+                {viewingPrescription.medicines && viewingPrescription.medicines.length > 0 ? (
+                  <table className="prescription-table" style={{ fontSize: 14 }}>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Tên thuốc</th>
+                        <th>Liều lượng</th>
+                        <th>Tần suất</th>
+                        <th>Thời gian</th>
+                        <th>Hướng dẫn</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewingPrescription.medicines.map((med, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}</td>
+                          <td style={{ fontWeight: 500 }}>{med.medicineName || 'N/A'}</td>
+                          <td>{med.dosage || 'N/A'}</td>
+                          <td>{med.frequency || 'N/A'}</td>
+                          <td>{med.duration || 'N/A'}</td>
+                          <td>{med.instruction || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: 20, color: '#6b7280' }}>
+                    Không có thuốc nào trong đơn
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="prescription-modal-footer">
+              <button
+                className="prescription-btn prescription-btn-secondary"
+                onClick={() => setShowViewModal(false)}
+              >
+                Đóng
+              </button>
+              <button
+                className="prescription-btn prescription-btn-success"
+                onClick={() => {
+                  setShowViewModal(false)
+                  handleSendEmail(viewingPrescription.prescriptionId)
+                }}
+              >
+                📧 Gửi Email
               </button>
             </div>
           </div>
