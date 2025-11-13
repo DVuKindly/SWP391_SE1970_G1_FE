@@ -118,8 +118,7 @@ const Header = ({ onLoginClick }) => {
                           background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
                           boxShadow: '0 10px 20px rgba(0,0,0,.08)', overflow: 'hidden', zIndex: 30
                         }}>
-                          <button onClick={() => { setMenuOpen(false); navigate('/profile'); }} style={menuItemStyle}>Hồ sơ</button>
-                          <button onClick={() => { setMenuOpen(false); navigate('/appointments'); }} style={menuItemStyle}>Bệnh án</button>
+                          <button onClick={() => { setMenuOpen(false); navigate('/patient'); }} style={menuItemStyle}>Hồ sơ</button>
                           <button onClick={() => { setMenuOpen(false); logout(); }} style={menuItemStyle}>Đăng xuất</button>
                         </div>
                       )}
